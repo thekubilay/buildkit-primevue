@@ -1,4 +1,4 @@
-const setDynamicFields = (columns: any[]): any => {
+export function setDynamicFields(columns: any[]): any {
   const object: any = {};
 
   columns.forEach((column) => {
@@ -43,4 +43,4 @@ const setDynamicFields = (columns: any[]): any => {
 
   return object
 }
-export default setDynamicFields;
+
