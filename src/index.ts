@@ -1,5 +1,6 @@
 // Public entry for the library
-import type {App} from 'vue';
+import type {App, Plugin} from 'vue';
+import {version} from '../package.json';
 
 // Components
 import FormKit from './components/formkit/FormKit.vue';
@@ -11,6 +12,7 @@ import FormKitLabel from './components/formkit/FormKitLabel.vue';
 export * from './components/formkit/types/FormKitProps';
 // Utils
 export * from './components/formkit/utils/visibility';
+export { setDynamicFields } from './components/formkit/utils/setDynamicFields';
 
 // Named exports for components
 export {
@@ -18,9 +20,10 @@ export {
   FormKitControl,
   FormKitField,
   FormKitLabel,
+  version,
 };
 
-// Plugin installs to register all components globally (optional for consumers)
+// Plugin for global registration
 export const BuildKitPrimeVue = {
   install(app: App) {
     app.component('FormKit', FormKit);
@@ -28,5 +31,8 @@ export const BuildKitPrimeVue = {
     app.component('FormKitField', FormKitField);
     app.component('FormKitLabel', FormKitLabel);
   },
-};
+  version,
+} as Plugin & { version: string };
 
+// Default export (could be the plugin or main component)
+export default BuildKitPrimeVue;
