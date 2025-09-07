@@ -1,5 +1,5 @@
 <template>
-  <FormField :name="String(name)" class="flex flex-col gap-2" v-show="isVisible" v-slot="{ error }">
+  <FormField :name="String(name)" class="flex flex-col gap-2" :class="classNameWidth" v-show="isVisible" v-slot="{ error }">
     <div class="flex gap-1" :class="className">
       <FormKitLabel>{{ label }}</FormKitLabel>
       <slot/>
@@ -77,9 +77,12 @@ provide('$fcDynamicFormField', {
 
 const $fcDynamicForm: any = inject('$fcDynamicForm', undefined) ?? formApi;
 
+const classNameWidth = computed(() => {
+  return [rest.class || "", rest.className || ""]
+})
+
 const className = computed(() => {
   if (!rest?.as) return "flex-col"
-
   return {
     "items-center flex-row-reverse gap-3": rest?.as === "Checkbox",
     "flex-col": rest?.as !== 'Checkbox'

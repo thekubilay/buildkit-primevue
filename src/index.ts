@@ -30,5 +30,3 @@ export const BuildKitPrimeVue = {
   },
 };
 
-// Default export as plugin for library-like usage
-export default BuildKitPrimeVue;

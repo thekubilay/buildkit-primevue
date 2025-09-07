@@ -63,6 +63,7 @@ export default defineConfig({
         '@vueuse/core'
       ],
       output: {
+        exports: 'named',
         globals: {
           vue: 'Vue'
         }

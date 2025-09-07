@@ -1,5 +1,5 @@
 <template>
-  <div class="flex justify-center items-center h-screen">
+  <div class="w-full h-screen py-14 flex justify-center items-start overflow-y-scroll">
     <div class="w-[500px]">
       <FormKit v-model="formData" v-bind="FormKitArgs" @submit="submit">
         <template #footer>
@@ -12,6 +12,7 @@
 
 <script setup lang="ts">
 import Button from "primevue/button";
+
 import {FormKit, type FormKitProps} from "./index.ts";
 import {reactive, ref} from "vue";
 
@@ -24,6 +25,13 @@ const fields = reactive<any>({
     schema: "required", // Required field
     fluid: true,
     class: "w-full",
+    optionLabel: "label",
+    optionValue: "value",
+    options: [
+      {label: "男性", value: "male"},
+      {label: "女性", value: "female"},
+      {label: "その他", value: "other"}
+    ]
   },
   name: {
     inputId: "name_id",
@@ -80,7 +88,13 @@ const fields = reactive<any>({
     inputId: "tags_id",
     label: "タグ",
     as: "MultiSelect",
+    optionLabel: "label",
+    optionValue: "value",
     defaultValue: [],
+    options: [
+      {label: "テクノロジー", value: "technology"},
+      {label: "デザイン", value: "design"},
+    ],
     schema: "min:1|max:5", // At least 1, max 5 selections
     class: "w-full",
   },
@@ -90,37 +104,38 @@ const fields = reactive<any>({
     inputId: "newsletter_id",
     binary: true,
     defaultValue: false,
-    // Optional schema: "required" for mandatory checkboxes
   },
-  // terms: {
-  //   label: "利用規約に同意する",
-  //   as: "Checkbox",
-  //   inputId: "newsletter_id",
-  //   defaultValue: true,
-  //   schema: "required", // Must be checked to submit
-  // },
-  // gender: {
-  //   label: "性別",
-  //   as: "RadioButton",
-  //   defaultValue: '',
-  //   schema: "required",
-  //   options: [
-  //     { label: "男性", value: "male" },
-  //     { label: "女性", value: "female" },
-  //     { label: "その他", value: "other" }
-  //   ]
-  // },
-  // interests: {
-  //   label: "興味のある分野",
-  //   as: "CheckboxGroup",
-  //   defaultValue: [],
-  //   schema: "min:1|max:3", // At least 1, max 3 selections
-  //   options: [
-  //     { label: "テクノロジー", value: "technology" },
-  //     { label: "デザイン", value: "design" },
-  //     // ... more options
-  //   ]
-  // }
+  terms: {
+    label: "利用規約に同意する",
+    as: "Checkbox",
+    inputId: "terms_id",
+    defaultValue: true,
+    binary: true,
+    schema: "required", // Must be checked to submit
+  },
+  gender: {
+    label: "性別",
+    as: "RadioButton",
+    defaultValue: '',
+    schema: "required",
+    vertical:true,
+    options: [
+      { label: "男性", value: "male" },
+      { label: "女性", value: "female" },
+      { label: "その他", value: "other" }
+    ]
+  },
+  interests: {
+    label: "興味のある分野",
+    as: "CheckboxGroup",
+    defaultValue: [],
+    schema: "min:1|max:3", // At least 1, max 3 selections
+    options: [
+      { label: "テクノロジー", value: "technology" },
+      { label: "デザイン", value: "design" },
+      // ... more options
+    ]
+  }
 })
 
 const isLoading = ref(false)

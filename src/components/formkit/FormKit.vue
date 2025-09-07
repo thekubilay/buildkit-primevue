@@ -32,6 +32,7 @@ import type {FormKitProps} from "./types/FormKitProps.ts";
 import useFormKitValidations from "./useFormKitValidations.ts";
 
 const {fields, size = "medium"} = defineProps<FormKitProps>();
+
 const emit = defineEmits(["submit"])
 const form = defineModel("modelValue")
 
@@ -39,7 +40,7 @@ const {resolver} = useFormKitValidations(fields)
 
 provide('$fcDynamicForm', {
   getFieldValue: (fieldName: string) => {
-    // prefer a getter if available, fall back to states map
+    // prefer a getter if available, fall back to the state map
     const state = (form.value as any)?.getFieldState ? (form.value as any).getFieldState(fieldName) : (form.value as any)?.states?.[fieldName];
     return state?.value;
   },

@@ -8,7 +8,7 @@ export interface FormKitField {
   as?: string; // Component type (Select, InputNumber, Checkbox, RadioButton, CheckboxGroup, etc.)
   defaultValue?: any;
   schema?: string; // Schema string like "required|max:12|email"
-  validations?: string[]; // Array of validation rule names (fallback)
+  vertical: boolean; // this is for group inputs checkboxGroup RadioButton
   options?: Array<{ label: string; value: any }>; // For Select, RadioButton, CheckboxGroup
   showWhen?: {
     field: string;
@@ -20,6 +20,7 @@ export interface FormKitField {
     equals?: any;
     includes?: any | any[];
   };
+
   [key: string]: any; // For other field properties
 }
 

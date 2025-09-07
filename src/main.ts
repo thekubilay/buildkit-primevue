@@ -2,7 +2,7 @@ import {createApp} from 'vue'
 import './tailwind.css'
 import App from './App.vue'
 
-import BuildKitPrimeVue from './index.ts'
+import { BuildKitPrimeVue } from './index.ts'
 import PrimeVue from 'primevue/config'
 import Aura from '@primeuix/themes/aura';
 

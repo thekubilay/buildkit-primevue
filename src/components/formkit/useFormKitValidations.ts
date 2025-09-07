@@ -173,7 +173,7 @@ const useFormKitValidations = (fields?: FormKitProps['fields']) => {
         fieldSchema = z.number();
       } else if (field.as === 'Checkbox') {
         fieldSchema = z.boolean();
-      } else if (field.type === 'array' || field.as === 'MultiSelect' || Array.isArray(field.defaultValue)) {
+      } else if (field.type === 'array' || field.as === 'MultiSelect' || field.as === 'CheckboxGroup' || Array.isArray(field.defaultValue)) {
         fieldSchema = z.array(z.any());
       } else {
         fieldSchema = z.string();
