@@ -30,19 +30,6 @@ export default defineConfig({
       'zod'
     ]
   },
-  // resolve: {
-  //   alias: [
-  //     {
-  //       find: '@',
-  //       replacement: path.resolve(__dirname, 'src')
-  //     },
-  //     // AWS Amplify compatibility fix
-  //     {
-  //       find: './runtimeConfig',
-  //       replacement: './runtimeConfig.browser',
-  //     }
-  //   ]
-  // },
   build: {
     lib: {
       entry: 'src/index.ts',

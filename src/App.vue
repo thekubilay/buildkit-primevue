@@ -118,7 +118,6 @@ const fields = reactive<any>({
     as: "RadioButton",
     defaultValue: '',
     schema: "required",
-    vertical:true,
     options: [
       { label: "男性", value: "male" },
       { label: "女性", value: "female" },

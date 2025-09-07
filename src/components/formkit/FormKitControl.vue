@@ -1,6 +1,6 @@
 <template>
   <!-- CheckboxGroup rendering -->
-  <div v-if="restAs === 'CheckboxGroup' && hasOptions" class="flex gap-2" :class="classNameGroup">
+  <div v-if="restAs === 'CheckboxGroup' && hasOptions" class="flex gap-2 pt-1" :class="classNameGroup">
     <div v-for="(opt, i) in options" :key="i" class="flex items-center gap-2">
       <component :is="PrimeCheckbox" :name="name" :inputId="`${name}-${i}`" :value="opt.value" :size="size"/>
       <label :for="`${name}-${i}`" class="text-sm">{{ opt.label }}</label>
@@ -8,7 +8,7 @@
   </div>
 
   <!-- RadioButton group rendering -->
-  <div v-else-if="restAs === 'RadioButton' && hasOptions" class="flex gap-2" :class="classNameGroup">
+  <div v-else-if="restAs === 'RadioButton' && hasOptions" class="flex gap-2 pt-1" :class="classNameGroup">
     <div v-for="(opt, i) in options" :key="i" class="flex items-center gap-2">
       <component :is="PrimeRadioButton" :name="name" :inputId="`${name}-${i}`" :value="opt.value" :size="size"/>
       <label :for="`${name}-${i}`" class="text-sm">{{ opt.label }}</label>
