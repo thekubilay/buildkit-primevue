@@ -1,0 +1,141 @@
+<template>
+  <div class="flex justify-center items-center h-screen">
+    <div class="w-[500px]">
+      <FormKit v-model="formData" v-bind="FormKitArgs" @submit="submit">
+        <template #footer>
+          <Button type="submit" size="small" label="保存" class="w-[48%] ml-auto" :loading="isLoading" @click="submit"/>
+        </template>
+      </FormKit>
+    </div>
+  </div>
+</template>
+
+<script setup lang="ts">
+import Button from "primevue/button";
+import {FormKit, type FormKitProps} from "./index.ts";
+import {reactive, ref} from "vue";
+
+const fields = reactive<any>({
+  project: {
+    inputId: "project_id",
+    label: "プロジェクト",
+    as: "Select",
+    defaultValue: '',
+    schema: "required", // Required field
+    fluid: true,
+    class: "w-full",
+  },
+  name: {
+    inputId: "name_id",
+    label: "氏名",
+    defaultValue: 'article',
+    placeholder: "氏名を入力",
+    schema: "required|max:12", // Required, max 12 chars, hiragana only
+    class: "w-full",
+    help: "asdasdasda"
+  },
+  email: {
+    inputId: "email_id",
+    label: "メールアドレス",
+    defaultValue: '',
+    placeholder: "email@example.com",
+    schema: "required|email|max:100", // Required, email format, max 100 chars
+    class: "w-full",
+    hideWhen: {field: "name", equals: "article"},
+  },
+  phone: {
+    inputId: "phone_id",
+    label: "電話番号",
+    defaultValue: '',
+    placeholder: "09012345678",
+    schema: "required|number|min:10|max:11", // Required, numbers only, 10-11 digits
+    showWhen: {field: "name", equals: "article"},
+    class: "w-full",
+  },
+  age: {
+    inputId: "age_id",
+    label: "年齢",
+    as: "InputNumber",
+    defaultValue: null,
+    schema: "required|min:18|max:100", // Required, between 18-100
+    class: "w-full",
+  },
+  website: {
+    inputId: "website_id",
+    label: "ウェブサイト",
+    defaultValue: '',
+    placeholder: "https://example.com",
+    schema: "url", // Optional URL validation
+    class: "w-full",
+  },
+  username: {
+    inputId: "username_id",
+    label: "ユーザー名",
+    defaultValue: '',
+    placeholder: "username123",
+    schema: "required|min:3|max:20|romaji|nospace", // Required, 3-20 chars, romaji, no spaces
+    class: "w-full",
+  },
+  tags: {
+    inputId: "tags_id",
+    label: "タグ",
+    as: "MultiSelect",
+    defaultValue: [],
+    schema: "min:1|max:5", // At least 1, max 5 selections
+    class: "w-full",
+  },
+  newsletter: {
+    label: "ニュースレターを購読する",
+    as: "Checkbox",
+    inputId: "newsletter_id",
+    binary: true,
+    defaultValue: false,
+    // Optional schema: "required" for mandatory checkboxes
+  },
+  // terms: {
+  //   label: "利用規約に同意する",
+  //   as: "Checkbox",
+  //   inputId: "newsletter_id",
+  //   defaultValue: true,
+  //   schema: "required", // Must be checked to submit
+  // },
+  // gender: {
+  //   label: "性別",
+  //   as: "RadioButton",
+  //   defaultValue: '',
+  //   schema: "required",
+  //   options: [
+  //     { label: "男性", value: "male" },
+  //     { label: "女性", value: "female" },
+  //     { label: "その他", value: "other" }
+  //   ]
+  // },
+  // interests: {
+  //   label: "興味のある分野",
+  //   as: "CheckboxGroup",
+  //   defaultValue: [],
+  //   schema: "min:1|max:3", // At least 1, max 3 selections
+  //   options: [
+  //     { label: "テクノロジー", value: "technology" },
+  //     { label: "デザイン", value: "design" },
+  //     // ... more options
+  //   ]
+  // }
+})
+
+const isLoading = ref(false)
+const formData = ref<Record<string, any>>({})
+const FormKitArgs = reactive<FormKitProps>({
+  fields: fields,
+  size: "small"
+})
+
+const submit = async ({valid, states}: any): Promise<void> => {
+  if (valid) {
+    console.log('Form is valid, submitting:', formData.value);
+    // Submit logic here
+  } else {
+    console.log('Form has validation errors:', states);
+  }
+}
+</script>
