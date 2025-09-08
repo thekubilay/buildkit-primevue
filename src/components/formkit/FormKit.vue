@@ -3,6 +3,7 @@
     <slot name="start"></slot>
 
     <slot v-bind="$form">
+      <div></div>
       <template v-for="({ inputId, label, required, help, ...rest }, name) in fields" :key="inputId ?? name">
         <FormKitField :name="name" :input-id="inputId" :required="required" :label="label" :help="help" :rest="rest" :form-api="$form">
           <component :is="FormKitControl" :label="label" :input-id="inputId" :rest="rest" :size="size"/>
@@ -64,6 +65,10 @@ const initialValues = computed<any>(() => {
     obj[key] = (fields as any)[key]?.defaultValue;
   })
   return obj;
+})
+
+const classNameRowLayout = computed(() => () => {
+
 })
 
 function isFieldVisibleByConfig(_: string, cfg: any, values: Record<string, any>): boolean {

@@ -25,6 +25,7 @@ const fields = reactive<any>({
     schema: "required", // Required field
     fluid: true,
     class: "w-full",
+    colSpan: {mobile: 5, tablet: 2, desktop: 1}, // Responsive
     optionLabel: "label",
     optionValue: "value",
     options: [
@@ -39,6 +40,7 @@ const fields = reactive<any>({
     defaultValue: 'article',
     placeholder: "氏名を入力",
     schema: "required|max:12", // Required, max 12 chars, hiragana only
+    colSpan: {mobile: 4, tablet: 2, desktop: 1}, // Responsive
     class: "w-full",
     help: "asdasdasda"
   },
@@ -48,6 +50,7 @@ const fields = reactive<any>({
     defaultValue: '',
     placeholder: "email@example.com",
     schema: "required|email|max:100", // Required, email format, max 100 chars
+    colSpan: {mobile: 4, tablet: 2, desktop: 1}, // Responsive
     class: "w-full",
     hideWhen: {field: "name", equals: "article"},
   },
@@ -57,6 +60,7 @@ const fields = reactive<any>({
     defaultValue: '',
     placeholder: "09012345678",
     schema: "required|number|min:10|max:11", // Required, numbers only, 10-11 digits
+    colSpan: {mobile: 4, tablet: 2, desktop: 1}, // Responsive
     showWhen: {field: "name", equals: "article"},
     class: "w-full",
   },
@@ -66,6 +70,7 @@ const fields = reactive<any>({
     as: "InputNumber",
     defaultValue: null,
     schema: "required|min:18|max:100", // Required, between 18-100
+    colSpan: {mobile: 4, tablet: 2, desktop: 1}, // Responsive
     class: "w-full",
   },
   website: {
@@ -75,6 +80,7 @@ const fields = reactive<any>({
     placeholder: "https://example.com",
     schema: "url", // Optional URL validation
     class: "w-full",
+    colSpan: {mobile: 4, tablet: 2, desktop: 1}, // Responsive
   },
   username: {
     inputId: "username_id",
@@ -91,6 +97,7 @@ const fields = reactive<any>({
     optionLabel: "label",
     optionValue: "value",
     defaultValue: [],
+    colSpan: {mobile: 4, tablet: 2, desktop: 1}, // Responsive
     options: [
       {label: "テクノロジー", value: "technology"},
       {label: "デザイン", value: "design"},
@@ -102,6 +109,7 @@ const fields = reactive<any>({
     label: "ニュースレターを購読する",
     as: "Checkbox",
     inputId: "newsletter_id",
+    colSpan: {mobile: 4, tablet: 2, desktop: 1}, // Responsive
     binary: true,
     defaultValue: false,
   },
@@ -110,6 +118,7 @@ const fields = reactive<any>({
     as: "Checkbox",
     inputId: "terms_id",
     defaultValue: true,
+    colSpan: {mobile: 4, tablet: 2, desktop: 1}, // Responsive
     binary: true,
     schema: "required", // Must be checked to submit
   },
@@ -118,10 +127,11 @@ const fields = reactive<any>({
     as: "RadioButton",
     defaultValue: '',
     schema: "required",
+    colSpan: {mobile: 4, tablet: 2, desktop: 1}, // Responsive
     options: [
-      { label: "男性", value: "male" },
-      { label: "女性", value: "female" },
-      { label: "その他", value: "other" }
+      {label: "男性", value: "male"},
+      {label: "女性", value: "female"},
+      {label: "その他", value: "other"}
     ]
   },
   interests: {
@@ -129,9 +139,10 @@ const fields = reactive<any>({
     as: "CheckboxGroup",
     defaultValue: [],
     schema: "min:1|max:3", // At least 1, max 3 selections
+    colSpan: {mobile: 4, tablet: 2, desktop: 1}, // Responsive
     options: [
-      { label: "テクノロジー", value: "technology" },
-      { label: "デザイン", value: "design" },
+      {label: "テクノロジー", value: "technology"},
+      {label: "デザイン", value: "design"},
       // ... more options
     ]
   }
