@@ -25,7 +25,7 @@ const fields = reactive<any>({
     schema: "required", // Required field
     fluid: true,
     class: "w-full",
-    colSpan: {mobile: 5, tablet: 2, desktop: 1}, // Responsive
+    colSpan: {mobile: 4, tablet: 2, desktop: 1}, // Responsive
     optionLabel: "label",
     optionValue: "value",
     options: [
@@ -40,7 +40,7 @@ const fields = reactive<any>({
     defaultValue: 'article',
     placeholder: "氏名を入力",
     schema: "required|max:12", // Required, max 12 chars, hiragana only
-    colSpan: {mobile: 4, tablet: 2, desktop: 1}, // Responsive
+    colSpan: {mobile: 4, tablet: 2, desktop: 4}, // Responsive
     class: "w-full",
     help: "asdasdasda"
   },

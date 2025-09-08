@@ -1,13 +1,14 @@
 <template>
-  <Form ref="form" v-slot="$form" :initial-values="initialValues" :resolver="resolver" @submit="submit" class="flex flex-col items-start gap-3">
+  <Form ref="form" v-slot="$form" :initial-values="initialValues" :resolver="resolver" @submit="submit" class="flex flex-col flex-wrap items-start gap-3">
     <slot name="start"></slot>
 
     <slot v-bind="$form">
-      <div></div>
-      <template v-for="({ inputId, label, required, help, ...rest }, name) in fields" :key="inputId ?? name">
-        <FormKitField :name="name" :input-id="inputId" :required="required" :label="label" :help="help" :rest="rest" :form-api="$form">
-          <component :is="FormKitControl" :label="label" :input-id="inputId" :rest="rest" :size="size"/>
-        </FormKitField>
+      <template v-for="({ inputId, label, required, help, colSpan, ...rest }, name) in fields" :key="inputId ?? name">
+        <div class="flex flex-start" :style="styleColumnSpan(colSpan)">
+          <FormKitField :name="name" :input-id="inputId" :required="required" :label="label" :help="help" :rest="rest" :form-api="$form">
+            <component :is="FormKitControl" :label="label" :input-id="inputId" :rest="rest" :size="size"/>
+          </FormKitField>
+        </div>
       </template>
     </slot>
 
@@ -31,6 +32,7 @@ import {equals, includesMatch} from "./utils/visibility.ts";
 import type {FormKitProps} from "./types/FormKitProps.ts";
 
 import useFormKitValidations from "./useFormKitValidations.ts";
+import spanStyleMap from "./utils/spanStyleMap.ts";
 
 const {fields, size = "medium"} = defineProps<FormKitProps>();
 
@@ -67,8 +69,22 @@ const initialValues = computed<any>(() => {
   return obj;
 })
 
-const classNameRowLayout = computed(() => () => {
+const styleColumnSpan = computed(() => (span: { mobile: number, tablet: number, desktop: number }) => {
+  let value = ""
 
+  if (!span) {
+    value = spanStyleMap["1"]
+  } else {
+    value = spanStyleMap[`${span.desktop}`]
+  }
+
+  console.log({
+    "width": value
+  })
+
+  return {
+    "width": value
+  }
 })
 
 function isFieldVisibleByConfig(_: string, cfg: any, values: Record<string, any>): boolean {
