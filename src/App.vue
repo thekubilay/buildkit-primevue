@@ -25,7 +25,7 @@ const fields = reactive<any>({
     schema: "required", // Required field
     fluid: true,
     class: "w-full",
-    colSpan: {mobile: 4, tablet: 2, desktop: 1}, // Responsive
+    colSpan: {mobile: 1, tablet: 2, desktop: 2}, // Responsive
     optionLabel: "label",
     optionValue: "value",
     options: [
@@ -40,7 +40,7 @@ const fields = reactive<any>({
     defaultValue: 'article',
     placeholder: "氏名を入力",
     schema: "required|max:12", // Required, max 12 chars, hiragana only
-    colSpan: {mobile: 4, tablet: 2, desktop: 4}, // Responsive
+    colSpan: {mobile: 1, tablet: 2, desktop: 2}, // Responsive
     class: "w-full",
     help: "asdasdasda"
   },
@@ -109,7 +109,7 @@ const fields = reactive<any>({
     label: "ニュースレターを購読する",
     as: "Checkbox",
     inputId: "newsletter_id",
-    colSpan: {mobile: 4, tablet: 2, desktop: 1}, // Responsive
+    colSpan: {mobile: 1, tablet: 1, desktop: 1}, // Responsive
     binary: true,
     defaultValue: false,
   },
@@ -118,7 +118,7 @@ const fields = reactive<any>({
     as: "Checkbox",
     inputId: "terms_id",
     defaultValue: true,
-    colSpan: {mobile: 4, tablet: 2, desktop: 1}, // Responsive
+    colSpan: {mobile: 1, tablet: 1, desktop: 1}, // Responsive
     binary: true,
     schema: "required", // Must be checked to submit
   },
@@ -127,7 +127,8 @@ const fields = reactive<any>({
     as: "RadioButton",
     defaultValue: '',
     schema: "required",
-    colSpan: {mobile: 4, tablet: 2, desktop: 1}, // Responsive
+    colSpan: {mobile: 1, tablet: 1, desktop: 1}, // Responsive
+    vertical:true,
     options: [
       {label: "男性", value: "male"},
       {label: "女性", value: "female"},

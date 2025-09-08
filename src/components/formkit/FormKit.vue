@@ -1,5 +1,5 @@
 <template>
-  <Form ref="form" v-slot="$form" :initial-values="initialValues" :resolver="resolver" @submit="submit" class="flex flex-col flex-wrap items-start gap-3">
+  <Form ref="form" v-slot="$form" :initial-values="initialValues" :resolver="resolver" @submit="submit" class="flex flex-wrap items-start gap-y-3 gap-x-8">
     <slot name="start"></slot>
 
     <slot v-bind="$form">
@@ -27,12 +27,15 @@ import FormKitField from "./FormKitField.vue";
 import FormKitControl from "./FormKitControl.vue";
 
 
-import {computed, provide, watch} from "vue";
+import {computed, provide, ref, watch} from "vue";
 import {equals, includesMatch} from "./utils/visibility.ts";
+import {useResizeObserver} from "@vueuse/core";
 import type {FormKitProps} from "./types/FormKitProps.ts";
 
 import useFormKitValidations from "./useFormKitValidations.ts";
+
 import spanStyleMap from "./utils/spanStyleMap.ts";
+
 
 const {fields, size = "medium"} = defineProps<FormKitProps>();
 
@@ -40,6 +43,15 @@ const emit = defineEmits(["submit"])
 const form = defineModel("modelValue")
 
 const {resolver} = useFormKitValidations(fields)
+
+const body = ref<HTMLElement>(document.body);
+const ww = ref(2600)
+
+useResizeObserver(body, (entries) => {
+  const entry = entries[0]
+  const {width} = entry.contentRect
+  ww.value = width
+})
 
 provide('$fcDynamicForm', {
   getFieldValue: (fieldName: string) => {
@@ -70,17 +82,21 @@ const initialValues = computed<any>(() => {
 })
 
 const styleColumnSpan = computed(() => (span: { mobile: number, tablet: number, desktop: number }) => {
+
   let value = ""
+  let device: "desktop" | "tablet" | "mobile" = "desktop"
+
+  if (ww.value < 512) {
+    device = "mobile"
+  } else if (ww.value > 512 && 724) {
+    device = "tablet"
+  }
 
   if (!span) {
     value = spanStyleMap["1"]
   } else {
-    value = spanStyleMap[`${span.desktop}`]
+    value = spanStyleMap[`${span[device]}`]
   }
-
-  console.log({
-    "width": value
-  })
 
   return {
     "width": value
