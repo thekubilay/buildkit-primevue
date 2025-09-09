@@ -46,7 +46,9 @@ const name = computed(() => $fcDynamicFormField?.name || "");
 const size = computed(() => props.size)
 
 const component = computed(() => {
-  return (PrimeVue as any)[props.rest?.as || "InputText"];
+  const key = props.rest?.as || "InputText";
+  const resolved = (PrimeVue as any)[key];
+  return resolved || key;
 });
 
 const iconLeft = props.rest?.iconLeft || null

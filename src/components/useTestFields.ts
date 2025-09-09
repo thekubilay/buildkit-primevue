@@ -130,6 +130,16 @@ const useTestFields = () => {
         {label: "テクノロジー", value: "technology"},
         {label: "デザイン", value: "design"},
       ]
+    },
+    content: {
+      inputId: "content_id",
+      label: "本文",
+      as: "Editor",
+      defaultValue: "",
+      schema: "min:1|max:5000",
+      class: "w-full",
+      colSpan: { mobile: 4, tablet: 2, desktop: 1 },
+      placeholder: "ここに本文を入力..."
     }
   })
 
