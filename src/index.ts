@@ -12,7 +12,9 @@ import FormKitLabel from './components/formkit/FormKitLabel.vue';
 export * from './components/formkit/types/FormKitProps';
 // Utils
 export * from './components/formkit/utils/visibility';
-export { setDynamicFields } from './components/formkit/utils/setDynamicFields';
+export {setDynamicFields} from './components/formkit/utils/setDynamicFields';
+export {getPayload} from './components/formkit/utils/getPayload';
+export {setFields} from './components/formkit/utils/setFields';
 
 // Named exports for components
 export {
@@ -34,5 +36,5 @@ export const BuildKitPrimeVue = {
   version,
 } as Plugin & { version: string };
 
-// Default export (could be the plugin or main component)
+// Default export (could be the plugin or main part)
 export default BuildKitPrimeVue;
