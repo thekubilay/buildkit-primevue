@@ -14,9 +14,9 @@ const useTestFields = () => {
       optionLabel: "label",
       optionValue: "value",
       options: [
-        {label: "男性", value: "male"},
-        {label: "女性", value: "female"},
-        {label: "その他", value: "other"}
+        {label: "サンプル1", value: "sample1"},
+        {label: "サンプル2", value: "sample2"},
+        {label: "サンプル3", value: "sample3"}
       ]
     },
     name: {

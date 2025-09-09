@@ -22,7 +22,7 @@ onMounted(() => {
   if (showWhen.value?.field && $fcDynamicForm?.watchFieldValue) {
     // Set the initial value if API supports it
     try {
-      showValue.value = $fcDynamicForm?.getValue?.(showWhen.value.field) ?? showValue.value;
+      showValue.value = $fcDynamicForm?.getFieldValue?.(showWhen.value.field) ?? showValue.value;
     } catch {
     }
     const stop = $fcDynamicForm.watchFieldValue(showWhen.value.field, (val: any) => {
@@ -32,7 +32,7 @@ onMounted(() => {
   }
   if (hideWhen.value?.field && $fcDynamicForm?.watchFieldValue) {
     try {
-      hideValue.value = $fcDynamicForm?.getValue?.(hideWhen.value.field) ?? hideValue.value;
+      hideValue.value = $fcDynamicForm?.getFieldValue?.(hideWhen.value.field) ?? hideValue.value;
     } catch {
     }
     const stop = $fcDynamicForm.watchFieldValue(hideWhen.value.field, (val: any) => {

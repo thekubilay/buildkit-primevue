@@ -13,14 +13,22 @@
 <script setup lang="ts">
 import Button from "primevue/button";
 
-import {FormKit, type FormKitProps} from "./index.ts";
-import {reactive, ref} from "vue";
+import {FormKit, type FormKitProps, setFields} from "./index.ts";
+import {onMounted, reactive, ref} from "vue";
 
 import useTestFields from "./components/useTestFields.ts";
 
+onMounted(() => {
+  const data = {
+    project: "sample1",
+    name: "rock",
+    email: "example@gmail.com"
+  }
+
+  setFields(data, fields)
+})
 
 const {fields} = useTestFields()
-
 
 const isLoading = ref(false)
 const form = ref<Record<string, any>>({})

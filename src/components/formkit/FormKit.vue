@@ -1,5 +1,13 @@
 <template>
-  <Form ref="form" v-slot="$form" :initial-values="initialValues" :resolver="resolver" @submit="submit" class="flex flex-wrap items-start gap-y-3 gap-x-8">
+  <Form
+    ref="formRef"
+    :key="formKey"
+    v-slot="$form"
+    :initial-values="initialValues"
+    :resolver="resolver"
+    @submit="submit"
+    class="flex flex-wrap items-start gap-y-3 gap-x-8"
+  >
     <slot name="start"></slot>
 
     <slot v-bind="$form">
@@ -40,7 +48,7 @@ import spanStyleMap from "./utils/spanStyleMap.ts";
 const {fields, size = "medium"} = defineProps<FormKitProps>();
 
 const emit = defineEmits(["submit"])
-const form = defineModel("modelValue")
+const model = defineModel("modelValue")
 
 const {resolver} = useFormKitValidations(fields)
 
@@ -53,17 +61,23 @@ useResizeObserver(body, (entries) => {
   ww.value = width
 })
 
+// Ref for the underlying PrimeVue Form instance and a key to remount when initial-values change
+const formRef = ref<any>(null)
+const formKey = ref(0)
+
 provide('$fcDynamicForm', {
   getFieldValue: (fieldName: string) => {
     // prefer a getter if available, fall back to the state map
-    const state = (form.value as any)?.getFieldState ? (form.value as any).getFieldState(fieldName) : (form.value as any)?.states?.[fieldName];
+    const api: any = formRef.value || model.value
+    const state = api?.getFieldState ? api.getFieldState(fieldName) : api?.states?.[fieldName];
     return state?.value;
   },
   watchFieldValue: (fieldName: string, cb: (val: any) => void) => {
     // consumers can watch a specific field's value reactively
     return watch(
       () => {
-        const state = (form.value as any)?.getFieldState ? (form.value as any).getFieldState(fieldName) : (form.value as any)?.states?.[fieldName];
+        const api: any = formRef.value || model.value
+        const state = api?.getFieldState ? api.getFieldState(fieldName) : api?.states?.[fieldName];
         return state?.value;
       },
       (val) => cb(val),
@@ -80,6 +94,11 @@ const initialValues = computed<any>(() => {
   })
   return obj;
 })
+
+// Remount the Form if initialValues object changes (e.g., setFields called after mount)
+watch(initialValues, () => {
+  formKey.value++
+}, { deep: true })
 
 const styleColumnSpan = computed(() => (span: { mobile: number, tablet: number, desktop: number }) => {
 
