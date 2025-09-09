@@ -87,11 +87,6 @@ const initialValues = computed<any>(() => {
   return obj;
 })
 
-// Remount the Form if initialValues object changes (e.g., setFields called after mount)
-watch(initialValues, () => {
-  formKey.value++
-}, {deep: true})
-
 const styleColumnSpan = computed(() => (span: { mobile: number, tablet: number, desktop: number }) => {
 
   let value = ""
@@ -169,5 +164,10 @@ const submit = (event: any) => {
     emit('submit', event);
   }
 };
+
+// Remount the Form if the initialValues object changes (e.g., setFields called after mount)
+watch(initialValues, () => {
+  formKey.value++
+}, {deep: true})
 
 </script>

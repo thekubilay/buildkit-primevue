@@ -13,7 +13,7 @@
 <script setup lang="ts">
 import Button from "primevue/button";
 
-import {FormKit, type FormKitProps, setFields} from "./index.ts";
+import {FormKit, type FormKitProps, getPayload, setFields} from "./index.ts";
 import {onMounted, reactive, ref} from "vue";
 
 import useTestFields from "./components/useTestFields.ts";
@@ -22,7 +22,8 @@ onMounted(() => {
   const data = {
     project: "sample1",
     name: "rock",
-    email: "example@gmail.com"
+    email: "example@gmail.com",
+    content: "okasdasd"
   }
 
   setFields(data, fields)
@@ -40,10 +41,13 @@ const FormKitArgs = reactive<FormKitProps>({
 
 const submit = async ({valid, states}: any): Promise<void> => {
   if (valid) {
-    console.log('Form is valid, submitting:', form.value);
+    const payload = getPayload(states)
+    console.log('Form is valid, submitting:', payload);
     // Submit logic here
   } else {
-    console.log('Form has validation errors:', states);
+    const payload = getPayload(states)
+    console.log(payload)
+    // console.log('Form has validation errors:', states);
   }
 }
 </script>

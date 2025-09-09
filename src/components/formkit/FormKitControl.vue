@@ -31,6 +31,7 @@ import IconField from "primevue/iconfield";
 import InputIcon from "primevue/inputicon";
 
 import * as PrimeVue from 'primevue';
+import Editor from 'primevue/editor';
 import {computed, inject, type PropType} from 'vue';
 
 const props = defineProps({
@@ -47,7 +48,13 @@ const size = computed(() => props.size)
 
 const component = computed(() => {
   const key = props.rest?.as || "InputText";
-  const resolved = (PrimeVue as any)[key];
+
+  // local explicit mapping for components that are not available on the PrimeVue namespace
+  const localMap: Record<string, any> = {
+    Editor
+  };
+
+  const resolved = localMap[key] || (PrimeVue as any)[key];
   return resolved || key;
 });
 

@@ -125,7 +125,7 @@ const useTestFields = () => {
       as: "CheckboxGroup",
       defaultValue: [],
       schema: "min:1|max:3", // At least 1, max 3 selections
-      colSpan: {mobile: 4, tablet: 2, desktop: 1}, // Responsive
+      colSpan: {mobile: 1, tablet: 2, desktop: 1}, // Responsive
       options: [
         {label: "テクノロジー", value: "technology"},
         {label: "デザイン", value: "design"},
@@ -135,10 +135,11 @@ const useTestFields = () => {
       inputId: "content_id",
       label: "本文",
       as: "Editor",
-      defaultValue: "",
+      defaultValue: "this is the default value",
       schema: "min:1|max:5000",
       class: "w-full",
-      colSpan: { mobile: 4, tablet: 2, desktop: 1 },
+      editorStyle: "height: 320px",
+      colSpan: {mobile: 1, tablet: 1, desktop: 1}, // Responsive
       placeholder: "ここに本文を入力..."
     }
   })
