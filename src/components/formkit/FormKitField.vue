@@ -84,7 +84,7 @@ const classNameWidth = computed(() => {
 const className = computed(() => {
   if (!rest?.as) return "flex-col"
   return {
-    "items-center flex-row-reverse gap-3": rest?.as === "Checkbox",
+    "items-center flex-row-reverse justify-end gap-3": rest?.as === "Checkbox",
     "flex-col": rest?.as !== 'Checkbox'
   }
 })

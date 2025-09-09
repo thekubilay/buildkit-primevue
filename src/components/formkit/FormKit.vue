@@ -1,13 +1,5 @@
 <template>
-  <Form
-    ref="formRef"
-    :key="formKey"
-    v-slot="$form"
-    :initial-values="initialValues"
-    :resolver="resolver"
-    @submit="submit"
-    class="flex flex-wrap items-start gap-y-3 gap-x-8"
-  >
+  <Form ref="formRef" :key="formKey" v-slot="$form" :initial-values="initialValues" :resolver="resolver" @submit="submit" class="flex flex-wrap items-start gap-y-3 gap-x-8">
     <slot name="start"></slot>
 
     <slot v-bind="$form">
@@ -98,7 +90,7 @@ const initialValues = computed<any>(() => {
 // Remount the Form if initialValues object changes (e.g., setFields called after mount)
 watch(initialValues, () => {
   formKey.value++
-}, { deep: true })
+}, {deep: true})
 
 const styleColumnSpan = computed(() => (span: { mobile: number, tablet: number, desktop: number }) => {
 

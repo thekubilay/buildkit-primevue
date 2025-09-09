@@ -3,6 +3,31 @@ import {z} from "zod";
 import type {FormKitProps} from "./types/FormKitProps.ts";
 
 const useFormKitValidations = (fields?: FormKitProps['fields']) => {
+  // Set a localized error map so Zod default messages (like invalid type) are shown in Japanese
+  // This catches cases such as "Invalid input: expected string, received null"
+
+  //@ts-ignore
+  z.setErrorMap((issue, ctx) => {
+    if (issue.code === 'invalid_type') {
+      // If a value is missing/null, show a required-style message
+      if ((issue.received as any) === 'null' || (issue.received as any) === 'undefined') {
+        return {message: '必須項目です'};
+      }
+      const typeLabel: Record<string, string> = {
+        string: '文字列',
+        number: '数値',
+        boolean: '真偽値',
+        array: '配列',
+        date: '日付',
+        object: 'オブジェクト'
+      };
+      const expected = typeLabel[(issue as any).expected] || (issue as any).expected;
+      return {message: `無効な入力です（${expected}が必要です）`};
+    }
+    // Fallback to Zod defaults for other codes; custom rule messages we set elsewhere will override these.
+    return {message: (ctx && (ctx as any).defaultError) || '無効な入力です'};
+  });
+
   const customRuleSchema: { [key: string]: (param?: string) => z.ZodType } = {
     // Basic required rule
     required: () => z.union([
@@ -249,12 +274,12 @@ const useFormKitValidations = (fields?: FormKitProps['fields']) => {
               }
             } else if (isZodBoolean(fieldSchema)) {
               if (rule === 'required') {
-                fieldSchema = fieldSchema.refine((v) => v === true, { message: "必須項目です" });
+                fieldSchema = fieldSchema.refine((v) => v === true, {message: "必須項目です"});
               }
             } else if (isZodNumber(fieldSchema)) {
               if (rule === 'required') {
                 // Allow nulls at type level, but enforce non-null when required to avoid generic type errors
-                fieldSchema = (fieldSchema as z.ZodNumber).nullable().refine((v) => v !== null, { message: "必須項目です" });
+                fieldSchema = (fieldSchema as z.ZodNumber).nullable().refine((v) => v !== null, {message: "必須項目です"});
               } else if (rule === 'min') {
                 const minValue = param ? parseFloat(param) : 0;
                 fieldSchema = (fieldSchema as z.ZodNumber).min(minValue, {message: `${minValue}以上で入力してください`});
@@ -265,10 +290,10 @@ const useFormKitValidations = (fields?: FormKitProps['fields']) => {
             } else if (isZodNullableNumber(fieldSchema)) {
               if (rule === 'min') {
                 const minValue = param ? parseFloat(param) : 0;
-                fieldSchema = (fieldSchema as any).refine((v: number | null) => v === null || v >= minValue, { message: `${minValue}以上で入力してください` });
+                fieldSchema = (fieldSchema as any).refine((v: number | null) => v === null || v >= minValue, {message: `${minValue}以上で入力してください`});
               } else if (rule === 'max') {
                 const maxValue = param ? parseFloat(param) : 1000000;
-                fieldSchema = (fieldSchema as any).refine((v: number | null) => v === null || v <= maxValue, { message: `${maxValue}以下で入力してください` });
+                fieldSchema = (fieldSchema as any).refine((v: number | null) => v === null || v <= maxValue, {message: `${maxValue}以下で入力してください`});
               }
             }
           }
@@ -300,9 +325,9 @@ const useFormKitValidations = (fields?: FormKitProps['fields']) => {
             fieldSchema = fieldSchema.min(1, {message: "必須項目です"});
           } else if (isZodNumber(fieldSchema)) {
             // For required numbers, allow null in input but convert to a friendly required error
-            fieldSchema = (fieldSchema as z.ZodNumber).nullable().refine((v) => v !== null, { message: "必須項目です" });
+            fieldSchema = (fieldSchema as z.ZodNumber).nullable().refine((v) => v !== null, {message: "必須項目です"});
           } else if (isZodBoolean(fieldSchema)) {
-            fieldSchema = fieldSchema.refine((v) => v === true, { message: "必須項目です" });
+            fieldSchema = fieldSchema.refine((v) => v === true, {message: "必須項目です"});
           }
         }
       }
