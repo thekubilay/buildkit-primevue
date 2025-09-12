@@ -43,6 +43,21 @@
       "import": "./dist/index.mjs",
       "require": "./dist/index.cjs"
     },
+    "./utils/setFields": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.cjs"
+    },
+    "./utils/getPayload": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.cjs"
+    },
+    "./utils": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.cjs"
+    },
     "./types/FormKitProps": {
       "types": "./dist/index.d.ts"
     }
