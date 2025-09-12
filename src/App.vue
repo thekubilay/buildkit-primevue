@@ -23,7 +23,9 @@ onMounted(() => {
     project: "sample1",
     name: "rock",
     email: "example@gmail.com",
-    content: "okasdasd"
+    content: "okasdasd",
+    birthdate: "2023-10-05T05:23:41.036132Z",
+    desired_m2: 70,
   }
 
   setFields(data, fields)

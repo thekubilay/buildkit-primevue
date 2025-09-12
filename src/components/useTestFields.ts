@@ -8,7 +8,6 @@ const useTestFields = () => {
       as: "Select",
       defaultValue: '',
       schema: "required", // Required field
-      fluid: true,
       class: "w-full",
       colSpan: {mobile: 1, tablet: 2, desktop: 1}, // Responsive
       optionLabel: "label",
@@ -18,6 +17,37 @@ const useTestFields = () => {
         {label: "サンプル2", value: "sample2"},
         {label: "サンプル3", value: "sample3"}
       ]
+    },
+    desired_m2: {
+      inputId: "desired_m2_id",
+      label: "ご希望の間取り",
+      defaultValue: '',
+      as: "Select",
+      className: "w-full",
+      placeholder: "選択してください",
+      optionLabel: "label",
+      optionValue: "value",
+      options: [
+        {label: "〜30m2", value: 30},
+        {label: "30m2〜", value: 30},
+        {label: "35m2〜", value: 35},
+        {label: "40m2〜", value: 40},
+        {label: "45m2〜", value: 45},
+        {label: "50m2〜", value: 50},
+        {label: "55m2〜", value: 55},
+        {label: "60m2〜", value: 60},
+        {label: "65m2〜", value: 65},
+        {label: "70m2〜", value: 70},
+        {label: "75m2〜", value: 75},
+        {label: "80m2〜", value: 80},
+        {label: "85m2〜", value: 85},
+        {label: "90m2〜", value: 90},
+        {label: "95m2〜", value: 95},
+        {label: "100m2〜", value: 100},
+        {label: "120m2〜", value: 120},
+        {label: "150m2〜", value: 150},
+      ],
+      colSpan: {desktop: 3, mobile: 1, tablet: 1},
     },
     name: {
       inputId: "name_id",
@@ -53,7 +83,7 @@ const useTestFields = () => {
       inputId: "birthdate_id",
       label: "Birthdate",
       as: "DatePicker",
-      defaultValue: '',
+      defaultValue: '2023-10-05T05:23:41.036132Z',
       schema: "required",
       colSpan: {mobile: 4, tablet: 2, desktop: 1}, // Responsive
       // showWhen: {field: "name", equals: "article"},

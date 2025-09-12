@@ -143,6 +143,10 @@ const useFormKitValidations = (fields?: FormKitProps['fields']) => {
   const isZodArray = (schema: z.ZodType): schema is z.ZodArray<any> => {
     return schema instanceof z.ZodArray;
   };
+
+  const isZodUnion = (schema: z.ZodType): schema is z.ZodUnion<any> => {
+    return schema instanceof (z as any).ZodUnion;
+  };
   
   // Helper function to apply custom validation rules
   const applyCustomValidation = (fieldSchema: z.ZodString, rule: string, param?: string): z.ZodString => {
@@ -206,6 +210,9 @@ const useFormKitValidations = (fields?: FormKitProps['fields']) => {
         fieldSchema = z.date().nullable();
       } else if (field.type === 'array' || field.as === 'MultiSelect' || field.as === 'CheckboxGroup' || Array.isArray(field.defaultValue)) {
         fieldSchema = z.array(z.any());
+      } else if (field.as === 'Select') {
+        // Select can return string | number | boolean | Date
+        fieldSchema = z.union([z.string(), z.number(), z.boolean(), z.date() as unknown as z.ZodType]);
       } else {
         fieldSchema = z.string();
       }
@@ -306,6 +313,10 @@ const useFormKitValidations = (fields?: FormKitProps['fields']) => {
                 const maxValue = param ? parseFloat(param) : 1000000;
                 fieldSchema = (fieldSchema as any).refine((v: number | null) => v === null || v <= maxValue, {message: `${maxValue}以下で入力してください`});
               }
+            } else if (isZodUnion(fieldSchema)) {
+              if (rule === 'required') {
+                fieldSchema = (fieldSchema as z.ZodUnion<any>).refine((v: any) => v !== undefined && v !== null && v !== '', {message: '必須項目です'});
+              }
             }
           }
         });
@@ -320,6 +331,9 @@ const useFormKitValidations = (fields?: FormKitProps['fields']) => {
           } else if (isZodDate(fieldSchema)) {
             // Accept null and undefined for optional date fields
             fieldSchema = (fieldSchema as z.ZodDate).nullable().optional();
+          } else if (isZodUnion(fieldSchema)) {
+            // For Select union types, allow empty string and undefined
+            fieldSchema = (fieldSchema as z.ZodUnion<any>).optional().or(z.literal(''));
           } else {
             fieldSchema = fieldSchema.optional();
           }
@@ -329,6 +343,8 @@ const useFormKitValidations = (fields?: FormKitProps['fields']) => {
         if (!field.required) {
           if (isZodString(fieldSchema)) {
             fieldSchema = fieldSchema.optional().or(z.literal(''));
+          } else if (isZodUnion(fieldSchema)) {
+            fieldSchema = (fieldSchema as z.ZodUnion<any>).optional().or(z.literal(''));
           } else {
             fieldSchema = fieldSchema.optional();
           }
@@ -342,6 +358,8 @@ const useFormKitValidations = (fields?: FormKitProps['fields']) => {
             fieldSchema = (fieldSchema as z.ZodNumber).nullable().refine((v) => v !== null, {message: "必須項目です"});
           } else if (isZodBoolean(fieldSchema)) {
             fieldSchema = fieldSchema.refine((v) => v === true, {message: "必須項目です"});
+          } else if (isZodUnion(fieldSchema)) {
+            fieldSchema = (fieldSchema as z.ZodUnion<any>).refine((v: any) => v !== undefined && v !== null && v !== '', {message: '必須項目です'});
           }
         }
       }
