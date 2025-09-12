@@ -93,7 +93,10 @@ const bindings = computed(() => {
     }
   })
 
-  binds["class"] = "w-full"
+  if (!["Checkbox", "RadioButton", "CheckboxGroup"].includes(props.rest?.as)) {
+    binds["class"] = "w-full"
+  }
+
   return binds
 })
 
