@@ -132,14 +132,18 @@ const useFormKitValidations = (fields?: FormKitProps['fields']) => {
     return schema instanceof z.ZodBoolean;
   };
 
+  const isZodDate = (schema: z.ZodType): schema is z.ZodDate => {
+    return schema instanceof z.ZodDate;
+  };
+  
   const isZodNullableNumber = (schema: z.ZodType): schema is z.ZodNullable<z.ZodNumber> => {
     return schema instanceof (z as any).ZodNullable && (schema as any)._def?.innerType instanceof z.ZodNumber;
   };
-
+  
   const isZodArray = (schema: z.ZodType): schema is z.ZodArray<any> => {
     return schema instanceof z.ZodArray;
   };
-
+  
   // Helper function to apply custom validation rules
   const applyCustomValidation = (fieldSchema: z.ZodString, rule: string, param?: string): z.ZodString => {
     switch (rule) {
@@ -198,6 +202,8 @@ const useFormKitValidations = (fields?: FormKitProps['fields']) => {
         fieldSchema = z.number();
       } else if (field.as === 'Checkbox') {
         fieldSchema = z.boolean();
+      } else if (field.as === 'DatePicker') {
+        fieldSchema = z.date().nullable();
       } else if (field.type === 'array' || field.as === 'MultiSelect' || field.as === 'CheckboxGroup' || Array.isArray(field.defaultValue)) {
         fieldSchema = z.array(z.any());
       } else {
@@ -276,6 +282,11 @@ const useFormKitValidations = (fields?: FormKitProps['fields']) => {
               if (rule === 'required') {
                 fieldSchema = fieldSchema.refine((v) => v === true, {message: "必須項目です"});
               }
+            } else if (isZodDate(fieldSchema)) {
+              if (rule === 'required') {
+                // z.date() cannot be null; we started with nullable to accommodate optionality
+                fieldSchema = (fieldSchema as z.ZodDate).nullable().refine((v) => v instanceof Date, {message: "必須項目です"});
+              }
             } else if (isZodNumber(fieldSchema)) {
               if (rule === 'required') {
                 // Allow nulls at type level, but enforce non-null when required to avoid generic type errors
@@ -306,6 +317,9 @@ const useFormKitValidations = (fields?: FormKitProps['fields']) => {
           } else if (isZodNumber(fieldSchema)) {
             // Accept null and undefined for optional number fields
             fieldSchema = (fieldSchema as z.ZodNumber).nullable().optional();
+          } else if (isZodDate(fieldSchema)) {
+            // Accept null and undefined for optional date fields
+            fieldSchema = (fieldSchema as z.ZodDate).nullable().optional();
           } else {
             fieldSchema = fieldSchema.optional();
           }

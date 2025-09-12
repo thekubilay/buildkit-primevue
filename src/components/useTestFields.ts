@@ -10,7 +10,7 @@ const useTestFields = () => {
       schema: "required", // Required field
       fluid: true,
       class: "w-full",
-      colSpan: {mobile: 1, tablet: 2, desktop: 2}, // Responsive
+      colSpan: {mobile: 1, tablet: 2, desktop: 1}, // Responsive
       optionLabel: "label",
       optionValue: "value",
       options: [
@@ -48,6 +48,16 @@ const useTestFields = () => {
       colSpan: {mobile: 4, tablet: 2, desktop: 1}, // Responsive
       // showWhen: {field: "name", equals: "article"},
       class: "w-full",
+    },
+    birthdate: {
+      inputId: "birthdate_id",
+      label: "Birthdate",
+      as: "DatePicker",
+      defaultValue: '',
+      schema: "required",
+      colSpan: {mobile: 4, tablet: 2, desktop: 1}, // Responsive
+      // showWhen: {field: "name", equals: "article"},
+      class: "w-[55%]",
     },
     age: {
       inputId: "age_id",

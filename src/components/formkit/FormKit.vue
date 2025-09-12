@@ -94,7 +94,7 @@ const styleColumnSpan = computed(() => (span: { mobile: number, tablet: number, 
 
   if (ww.value < 512) {
     device = "mobile"
-  } else if (ww.value > 512 && 724) {
+  } else if (ww.value > 512 && ww.value < 724) {
     device = "tablet"
   }
 

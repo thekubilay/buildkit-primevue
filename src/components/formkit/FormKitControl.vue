@@ -93,6 +93,7 @@ const bindings = computed(() => {
     }
   })
 
+  binds["class"] = "w-full"
   return binds
 })
 
