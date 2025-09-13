@@ -35,7 +35,6 @@ import type {FormKitProps} from "./types/FormKitProps.ts";
 import useFormKitValidations from "./useFormKitValidations.ts";
 
 import spanStyleMap from "./utils/spanStyleMap.ts";
-import castValue from "./utils/castValue.ts";
 
 
 const {fields, size = "medium"} = defineProps<FormKitProps>();
