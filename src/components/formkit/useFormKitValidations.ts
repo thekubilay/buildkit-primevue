@@ -210,8 +210,12 @@ const useFormKitValidations = (fields?: FormKitProps['fields']) => {
         fieldSchema = z.date().nullable();
       } else if (field.type === 'array' || field.as === 'MultiSelect' || field.as === 'CheckboxGroup' || Array.isArray(field.defaultValue)) {
         fieldSchema = z.array(z.any());
-      } else if (field.as === 'Select') {
-        // Select can return string | number | boolean | Date
+      } else if (
+        field.as === 'Select' ||
+        field.as === 'RadioButton' ||
+        (Array.isArray((field as any).options) && field.as !== 'MultiSelect' && field.as !== 'CheckboxGroup')
+      ) {
+        // Single-choice controls (Select/RadioButton/etc.) can return string | number | boolean | Date
         fieldSchema = z.union([z.string(), z.number(), z.boolean(), z.date() as unknown as z.ZodType]);
       } else {
         fieldSchema = z.string();
