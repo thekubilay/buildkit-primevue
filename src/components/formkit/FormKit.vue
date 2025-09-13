@@ -35,6 +35,7 @@ import type {FormKitProps} from "./types/FormKitProps.ts";
 import useFormKitValidations from "./useFormKitValidations.ts";
 
 import spanStyleMap from "./utils/spanStyleMap.ts";
+import castValue from "./utils/castValue.ts";
 
 
 const {fields, size = "medium"} = defineProps<FormKitProps>();
@@ -82,7 +83,7 @@ provide('$fcDynamicForm', {
 const initialValues = computed<any>(() => {
   const obj: { [key: string]: any } = {};
   Object.keys(fields).forEach(key => {
-    obj[key] = (fields as any)[key]?.defaultValue;
+    obj[key] = (fields as any)[key]?.defaultValue
   })
   return obj;
 })

@@ -19,16 +19,18 @@ import {onMounted, reactive, ref} from "vue";
 import useTestFields from "./components/useTestFields.ts";
 
 onMounted(() => {
-  const data = {
-    project: "sample1",
-    name: "rock",
-    email: "example@gmail.com",
-    content: "okasdasd",
-    birthdate: "2023-10-05T05:23:41.036132Z",
-    desired_m2: 70,
-  }
+  setTimeout(() => {
+    const data = {
+      project: "sample1",
+      name: "rock",
+      email: "example@gmail.com",
+      content: "kubilay turgut",
+      birthdate: "2023-10-05T05:23:41.036132Z",
+      desired_m2: 70,
+    }
 
-  setFields(data, fields)
+    setFields(data, fields)
+  }, 1000)
 })
 
 const {fields} = useTestFields()
