@@ -36,5 +36,5 @@ export const BuildKitPrimeVue = {
   version,
 } as Plugin & { version: string };
 
-// Default export (could be the plugin or main part)
-export default BuildKitPrimeVue;
+// Default export is the main FormKit component for convenient import without {}
+export default FormKit;

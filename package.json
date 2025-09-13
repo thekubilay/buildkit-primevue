@@ -24,49 +24,50 @@
   "sideEffects": false,
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
+      "types": "./types/index.d.ts",
       "import": "./dist/index.mjs",
       "require": "./dist/index.cjs"
     },
     "./FormKit": {
-      "types": "./dist/FormKit.d.ts",
+      "types": "./types/FormKit.d.ts",
       "import": "./dist/FormKit.mjs",
       "require": "./dist/FormKit.cjs"
     },
     "./FormKitControl": {
-      "types": "./dist/FormKitControl.d.ts",
+      "types": "./types/FormKitControl.d.ts",
       "import": "./dist/FormKitControl.mjs",
       "require": "./dist/FormKitControl.cjs"
     },
     "./utils/setDynamicFields": {
-      "types": "./dist/index.d.ts",
+      "types": "./types/index.d.ts",
       "import": "./dist/index.mjs",
       "require": "./dist/index.cjs"
     },
     "./utils/setFields": {
-      "types": "./dist/index.d.ts",
+      "types": "./types/index.d.ts",
       "import": "./dist/index.mjs",
       "require": "./dist/index.cjs"
     },
     "./utils/getPayload": {
-      "types": "./dist/index.d.ts",
+      "types": "./types/index.d.ts",
       "import": "./dist/index.mjs",
       "require": "./dist/index.cjs"
     },
     "./utils": {
-      "types": "./dist/index.d.ts",
+      "types": "./types/index.d.ts",
       "import": "./dist/index.mjs",
       "require": "./dist/index.cjs"
     },
     "./types/FormKitProps": {
-      "types": "./dist/index.d.ts"
+      "types": "./types/index.d.ts"
     }
   },
   "main": "dist/index.cjs",
   "module": "dist/index.mjs",
-  "types": "dist/index.d.ts",
+  "types": "types/index.d.ts",
   "files": [
-    "dist"
+    "dist",
+    "types"
   ],
   "scripts": {
     "dev": "vite --host --port=3000",
@@ -105,5 +106,8 @@
     "vite": "^7.1.2",
     "vitest": "^3.2.4",
     "vue-tsc": "^3.0.5"
+  },
+  "dependencies": {
+    "buildkit-primevue": "^0.1.16"
   }
 }

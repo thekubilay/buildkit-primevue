@@ -13,24 +13,26 @@
 <script setup lang="ts">
 import Button from "primevue/button";
 
-import {FormKit, type FormKitProps, getPayload, setFields} from "./index.ts";
+import {FormKit} from "buildkit-primevue";
+import {setFields, getPayload} from "buildkit-primevue/utils";
+import type {FormKitProps} from "buildkit-primevue/types"
+
+// import {FormKit, type FormKitProps, getPayload, setFields} from "./index.ts";
 import {onMounted, reactive, ref} from "vue";
 
 import useTestFields from "./components/useTestFields.ts";
 
 onMounted(() => {
-  setTimeout(() => {
-    const data = {
-      project: "sample1",
-      name: "rock",
-      email: "example@gmail.com",
-      content: "kubilay turgut",
-      birthdate: "2023-10-05T05:23:41.036132Z",
-      desired_m2: 70,
-    }
+  const data = {
+    project: "sample1",
+    name: "rock",
+    email: "example@gmail.com",
+    content: "kubilay turgut",
+    birthdate: "2023-10-05T05:23:41.036132Z",
+    desired_m2: 70,
+  }
 
-    setFields(data, fields)
-  }, 1000)
+  setFields(data, fields)
 })
 
 const {fields} = useTestFields()
