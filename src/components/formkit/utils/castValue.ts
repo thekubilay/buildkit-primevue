@@ -15,7 +15,7 @@ function castValue(value: unknown): string | boolean | number | Date | null {
     const trimmed = value.trim();
     const lower = trimmed.toLowerCase();
     if (['true', '1', 'yes', 'True'].includes(lower)) return true;
-    if (['false', '0', 'no', '', 'False'].includes(lower)) return false;
+    if (['false', '0', 'no', 'False'].includes(lower)) return false;
 
     // Try to cast ISO-8601 date strings (including fractional seconds)
     // Examples handled:
