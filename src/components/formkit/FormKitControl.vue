@@ -15,6 +15,10 @@
     </div>
   </div>
 
+  <div v-else-if="restAs === 'Editor'" class="flex gap-2 pt-1" :class="classNameGroup">
+    <Editor v-bind="bindings" :size="size"/>
+  </div>
+
   <!-- icon version component -->
   <IconField v-else-if="isIconVersion">
     <InputIcon v-if="iconLeft" :class="iconLeft"/>
@@ -29,9 +33,9 @@
 <script setup lang="ts">
 import IconField from "primevue/iconfield";
 import InputIcon from "primevue/inputicon";
+import Editor from "primevue/editor";
 
 import * as PrimeVue from 'primevue';
-import Editor from 'primevue/editor';
 import {computed, inject, type PropType} from 'vue';
 
 const props = defineProps({
@@ -48,13 +52,7 @@ const size = computed(() => props.size)
 
 const component = computed(() => {
   const key = props.rest?.as || "InputText";
-
-  // local explicit mapping for components that are not available on the PrimeVue namespace
-  const localMap: Record<string, any> = {
-    Editor
-  };
-
-  const resolved = localMap[key] || (PrimeVue as any)[key];
+  const resolved = (PrimeVue as any)[key];
   return resolved || key;
 });
 

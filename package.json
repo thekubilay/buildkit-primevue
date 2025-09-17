@@ -108,6 +108,6 @@
     "vue-tsc": "^3.0.5"
   },
   "dependencies": {
-    "buildkit-primevue": "^0.1.17"
+    "buildkit-primevue": "^0.1.21"
   }
 }
