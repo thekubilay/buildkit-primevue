@@ -12,11 +12,10 @@ createApp(App)
     ripple: true,
     theme: {
       preset: Aura,
-      options: {
-        prefix: 'p',
-        darkModeSelector: 'system',
-        cssLayer: false
-      }
+      cssLayer: {
+        name: "primevue",
+        order: "theme, base, primevue",
+      },
     },
   })
   .use(BuildKitPrimeVue)
