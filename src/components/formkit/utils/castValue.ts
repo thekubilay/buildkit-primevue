@@ -28,13 +28,14 @@ type CastComponent =
  *   - Numeric casting only for number-like components (InputNumber, Slider)
  *   - Boolean casting only for boolean-like components (Checkbox, ToggleButton, InputSwitch)
  *   - Date casting only for date-like components (Calendar, DatePicker)
- *   - Text-like components (InputText, Textarea, Editor, Password, Chips, Dropdown, MultiSelect) keep string values
+ *   - Text-like components (InputText, Textarea, Editor, Password, Chips, Select) keep string values
+ *   - MultiSelect handles array conversion from comma-separated strings
  * - When `as` is omitted, falls back to legacy auto-casting behavior for backward compatibility
  * @param value - The value to cast
  * @param as - Optional PrimeVue component name (from fields.as) to guide casting
- * @returns The cast value as string, boolean, number, Date, or null
+ * @returns The cast value as string, boolean, number, Date, array, or null
  */
-function castValue(value: unknown, as?: CastComponent): string | boolean | number | Date | null {
+function castValue(value: unknown, as?: CastComponent): string | boolean | number | Date | string[] | null {
   if (value === null || value === undefined) {
     return null;
   }
@@ -42,7 +43,24 @@ function castValue(value: unknown, as?: CastComponent): string | boolean | numbe
   const isNumberLike = as ? ['InputNumber', 'Slider'].includes(as) : undefined;
   const isBooleanLike = as ? ['Checkbox', 'ToggleButton', 'InputSwitch'].includes(as) : undefined;
   const isDateLike = as ? ['Calendar', 'DatePicker'].includes(as) : undefined;
-  const isTextLike = as ? ['InputText', 'Textarea', 'Editor', 'Password', 'Chips', 'Select', 'MultiSelect'].includes(as) : undefined;
+  const isTextLike = as ? ['InputText', 'Textarea', 'Editor', 'Password', 'Chips', 'Select'].includes(as) : undefined;
+  const isMultiSelect = as === 'MultiSelect';
+
+  // Special handling for MultiSelect
+  if (isMultiSelect) {
+    if (Array.isArray(value)) {
+      return value;
+    }
+    if (typeof value === 'string') {
+      return value.split(',')
+        .map(item => item.trim())
+        .filter(item => item !== '');
+    }
+    // For other types, convert to string and then split
+    return String(value).split(',')
+      .map(item => item.trim())
+      .filter(item => item !== '');
+  }
 
   // Check the type and cast accordingly
   if (typeof value === 'string') {
