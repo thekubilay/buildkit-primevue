@@ -21,7 +21,7 @@
   "bugs": {
     "url": "https://github.com/thekubilay/buildkit-primevue/issues"
   },
-  "sideEffects": false,
+  "sideEffects": ["**/*.css"],
   "exports": {
     ".": {
       "types": "./types/index.d.ts",
@@ -109,6 +109,6 @@
     "vue-tsc": "^3.0.5"
   },
   "dependencies": {
-    "buildkit-primevue": "^0.1.22"
+    "buildkit-primevue": "^0.1.25"
   }
 }

@@ -13,8 +13,9 @@
 <script setup lang="ts">
 import Button from "primevue/button";
 
-// import FormKit from "buildkit-primevue";
-import FormKit from "./components/formkit/FormKit.vue";
+import FormKit from "buildkit-primevue";
+// import FormKit from "./components/formkit/FormKit.vue";
+import "buildkit-primevue/style.css"; // Add this line
 import {setFields, getPayload} from "buildkit-primevue/utils";
 import type {FormKitProps} from "buildkit-primevue";
 
