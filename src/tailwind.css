@@ -1,3 +1,27 @@
 @import "tailwindcss";
 @import "tailwindcss-primeui";
 
+
+:root {
+  --p-editor-content-background: var(--p-content-background);
+  --p-editor-content-border-color: var(--p-content-border-color);
+  --p-editor-content-color: var(--p-content-color);
+  --p-editor-content-border-radius: var(--p-content-border-radius);
+  --p-editor-overlay-option-focus-background: var(--p-list-option-focus-background);
+  --p-editor-overlay-option-color: var(--p-list-option-color);
+  --p-editor-overlay-option-focus-color: var(--p-list-option-focus-color);
+  --p-editor-overlay-option-padding: var(--p-list-option-padding);
+  --p-editor-overlay-option-border-radius: var(--p-list-option-border-radius);
+  --p-editor-overlay-background: var(--p-overlay-select-background);
+  --p-editor-overlay-border-color: var(--p-overlay-select-border-color);
+  --p-editor-overlay-border-radius: var(--p-overlay-select-border-radius);
+  --p-editor-overlay-color: var(--p-overlay-select-color);
+  --p-editor-overlay-shadow: var(--p-overlay-select-shadow);
+  --p-editor-overlay-padding: var(--p-list-padding);
+  --p-editor-toolbar-item-color: var(--p-text-muted-color);
+  --p-editor-toolbar-item-hover-color: var(--p-text-color);
+  --p-editor-toolbar-item-active-color: var(--p-primary-color);
+  --p-editor-toolbar-background: var(--p-content-background);
+  --p-editor-toolbar-border-color: var(--p-content-border-color);
+  --p-editor-toolbar-border-radius: var(--p-content-border-radius);
+}

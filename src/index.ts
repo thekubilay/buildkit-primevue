@@ -2,8 +2,6 @@
 import type {App, Plugin} from 'vue';
 import {version} from '../package.json';
 
-import './styles/index.css';
-
 // Components
 import FormKit from './components/formkit/FormKit.vue';
 import FormKitControl from './components/formkit/FormKitControl.vue';

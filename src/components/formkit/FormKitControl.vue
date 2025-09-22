@@ -35,10 +35,6 @@ import IconField from "primevue/iconfield";
 import InputIcon from "primevue/inputicon";
 import Editor from "primevue/editor";
 
-// Ensure Quill editor styles are always loaded when Editor is used
-import 'quill/dist/quill.snow.css';
-import 'quill/dist/quill.bubble.css';
-
 import * as PrimeVue from 'primevue';
 import {computed, inject, type PropType} from 'vue';
 
