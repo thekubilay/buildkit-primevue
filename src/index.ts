@@ -15,6 +15,7 @@ export * from './components/formkit/utils/visibility';
 export {setDynamicFields} from './components/formkit/utils/setDynamicFields';
 export {getPayload} from './components/formkit/utils/getPayload';
 export {setFields} from './components/formkit/utils/setFields';
+export {clear} from './components/formkit/utils/clear';
 
 // Named exports for components
 export {
