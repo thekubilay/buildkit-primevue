@@ -33,6 +33,17 @@ onMounted(() => {
   }
 
   setFields(data, fields)
+
+  // Ensure the Form API is ready, then clear the form to default values (no validation shown)
+  // nextTick(() => {
+  //   try {
+  //     // form is v-modeled to FormKit and now exposes the internal Form API
+  //     const api = (form as any).value ?? form;
+  //     clear(api, fields);
+  //   } catch {
+  //     // no-op
+  //   }
+  // })
 })
 
 const {fields} = useTestFields()

@@ -57,6 +57,16 @@ useResizeObserver(body, (entries) => {
 const formRef = ref<any>(null)
 const formKey = ref(0)
 
+// Expose the internal Form API via v-model so parents can call utils like clear(form, fields)
+watch(formRef, (val) => {
+  try {
+    // model is the component's v-model; assign underlying Form instance
+    (model as any).value = val;
+  } catch {
+    // no-op
+  }
+}, { immediate: true })
+
 provide('$fcDynamicForm', {
   getFieldValue: (fieldName: string) => {
     // prefer a getter if available, fall back to the state map
