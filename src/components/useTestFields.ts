@@ -74,7 +74,7 @@ const useTestFields = () => {
       label: "電話番号",
       defaultValue: '',
       placeholder: "09012345678",
-      schema: "required|number|min:10|max:11", // Required, numbers only, 10-11 digits
+      schema: "required|number", // Required, numbers only, 10-11 digits
       colSpan: {mobile: 4, tablet: 2, desktop: 1}, // Responsive
       // showWhen: {field: "name", equals: "article"},
       class: "w-full",
