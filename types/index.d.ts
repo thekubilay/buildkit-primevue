@@ -49,7 +49,7 @@ export const version: string;
 // Utils
 export function setDynamicFields(columns: any[]): any;
 export function setFields(data: any, fields: any): void;
-export function getPayload(states: Record<string, FormFieldState>): any;
+export function getPayload(states: Record<string, FormFieldState>, fields?: Record<string, any>): any;
 export function clear(states: Record<string, FormFieldState>, fields: any): any;
 
 // Visibility utils (re-exported)

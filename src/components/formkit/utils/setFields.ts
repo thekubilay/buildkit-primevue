@@ -6,7 +6,8 @@ export function setFields(data: any, fields: any): void {
   }
 
   Object.keys(fields).forEach(key => {
-    fields[key].defaultValue = castValue(data[key])
+    const as = fields[key]?.as;
+    fields[key].defaultValue = castValue(data[key], as)
   })
 
 }

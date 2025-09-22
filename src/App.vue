@@ -27,7 +27,7 @@ import useTestFields from "./components/useTestFields.ts";
 onMounted(() => {
   const data = {
     // project: "sample1",
-    name: "rock",
+    name: "1111234234234",
     // email: "example@gmail.com",
     content: "kubilay turgut",
     birthdate: "2023-10-05T05:23:41.036132Z",
@@ -54,11 +54,11 @@ const FormKitArgs = reactive<FormKitProps>({
 
 const submit = async ({valid, states}: any): Promise<void> => {
   if (valid) {
-    const payload = getPayload(states)
+    const payload = getPayload(states, fields)
     console.log('Form is valid, submitting:', payload);
 
   } else {
-    const payload = getPayload(states)
+    const payload = getPayload(states, fields)
     console.log(payload)
     // console.log('Form has validation errors:', states);
   }

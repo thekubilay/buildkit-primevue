@@ -2,6 +2,18 @@ import {reactive} from "@vue/runtime-core";
 
 const useTestFields = () => {
   const fields = reactive<any>({
+    projects: {
+      label: "興味のある分野",
+      as: "MultiSelect",
+      defaultValue: [],
+      schema: "required", // At least 1, max 3 selections
+      colSpan: {mobile: 1, tablet: 2, desktop: 1}, // Responsive
+      options: [
+        "サンプル1",
+        "サンプル2",
+        "サンプル3",
+      ],
+    },
     project: {
       inputId: "project_id",
       label: "プロジェクト",
