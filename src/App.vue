@@ -26,9 +26,9 @@ import useTestFields from "./components/useTestFields.ts";
 
 onMounted(() => {
   const data = {
-    // project: "sample1",
+    project: "sample1",
     name: "1111234234234",
-    // email: "example@gmail.com",
+    email: "example@gmail.com",
     content: "kubilay turgut",
     birthdate: "2023-10-05T05:23:41.036132Z",
     // desired_m2: 70,
@@ -37,7 +37,17 @@ onMounted(() => {
   setFields(data, fields)
 
   setTimeout(() => {
-    clear(form.value.states, fields)
+    const data = {
+      project: "",
+      name: "",
+      email: "",
+      content: "",
+      birthdate: "",
+      // desired_m2: 70,
+    }
+    clear(data, fields)
+
+    // clear(form.value.states, fields)
   }, 4000)
 
 })
