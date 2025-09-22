@@ -15,7 +15,7 @@ import Button from "primevue/button";
 
 import FormKit from "buildkit-primevue";
 // import FormKit from "./components/formkit/FormKit.vue";
-import {setFields, getPayload} from "buildkit-primevue/utils";
+import {setFields, getPayload, clear} from "buildkit-primevue/utils";
 import type {FormKitProps} from "buildkit-primevue";
 
 import {onMounted, reactive, ref} from "vue";
@@ -33,6 +33,11 @@ onMounted(() => {
   }
 
   setFields(data, fields)
+
+  setTimeout(() => {
+    clear(form.value.states, fields)
+  }, 1000)
+
 })
 
 const {fields} = useTestFields()

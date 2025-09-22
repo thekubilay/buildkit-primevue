@@ -50,7 +50,7 @@ export const version: string;
 export function setDynamicFields(columns: any[]): any;
 export function setFields(data: any, fields: any): void;
 export function getPayload(states: Record<string, FormFieldState>): any;
-export function clear(states: Record<string, FormFieldState>): any;
+export function clear(states: Record<string, FormFieldState>, fields: any): any;
 
 // Visibility utils (re-exported)
 export function equals<T = any>(a: T, b: T): boolean;
