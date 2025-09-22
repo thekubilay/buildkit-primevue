@@ -49,7 +49,7 @@ const submit = async ({valid, states}: any): Promise<void> => {
   if (valid) {
     const payload = getPayload(states)
     console.log('Form is valid, submitting:', payload);
-    // Submit logic here
+
   } else {
     const payload = getPayload(states)
     console.log(payload)
