@@ -83,7 +83,7 @@ const useTestFields = () => {
       inputId: "birthdate_id",
       label: "Birthdate",
       as: "DatePicker",
-      defaultValue: '2023-10-05T05:23:41.036132Z',
+      defaultValue: "2023-10-05T05:23:41.036132Z",
       schema: "required",
       colSpan: {mobile: 4, tablet: 2, desktop: 1}, // Responsive
       // showWhen: {field: "name", equals: "article"},

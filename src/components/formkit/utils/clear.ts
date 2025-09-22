@@ -1,6 +1,5 @@
-import type { FormFieldState } from '@primevue/forms';
-import type { FormKitProps } from '../types/FormKitProps';
-import castValue from './castValue';
+import type {FormFieldState} from '@primevue/forms';
+import type {FormKitProps} from '../types/FormKitProps';
 
 /**
  * Clears form field states to their default values and resets validation meta.
@@ -14,6 +13,21 @@ import castValue from './castValue';
  * - Resets touched/dirty flags so validation messages do not show after clearing.
  * - Clears error state to reflect a brand-new form.
  */
+
+const castNextValue = (value: any) => {
+  if (typeof value === "string") {
+    return ""
+  } else if (typeof value === "number") {
+    return null
+  } else if (typeof value === "boolean") {
+    return false;
+  } else if (Array.isArray(value)) {
+    return [];
+  } else if (typeof value === "object") {
+    return null
+  }
+}
+
 export function clear(
   statesOrForm?: Record<string, FormFieldState> | { states?: Record<string, FormFieldState> } | { getFieldState?: (name: string) => FormFieldState } | null,
   fields?: FormKitProps['fields']
@@ -40,7 +54,7 @@ export function clear(
         return acc;
       }, {});
     } else if (!('getFieldState' in asAny)) {
-      // Assume it's already a states map
+      // Assume it's already a state map
       states = asAny as Record<string, FormFieldState>;
     }
   }
@@ -52,14 +66,19 @@ export function clear(
     const cfg = fields?.[name] as any;
 
     // Determine the target value: prefer declared defaultValue, otherwise undefined
-    const nextValue = cfg && 'defaultValue' in cfg ? cfg.defaultValue : undefined;
+    const value = cfg && 'defaultValue' in cfg ? cfg.defaultValue : undefined;
+
+    state.value = castNextValue(value)
+    // console.log(name, value)
 
     // Assign the value (cast to primitive/array types as in getPayload/setFields utilities)
-    try {
-      state.value = castValue(nextValue as any);
-    } catch {
-      state.value = nextValue as any;
-    }
+    // try {
+    //   // state.value = nextValue
+    //   state.value = castValue(nextValue as any);
+    //   // console.log(state.value)
+    // } catch {
+    //   state.value = nextValue as any;
+    // }
 
     // Reset meta to avoid showing validation messages post-clear
     if ('touched' in state) state.touched = false;

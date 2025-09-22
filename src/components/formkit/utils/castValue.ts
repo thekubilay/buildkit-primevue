@@ -25,6 +25,7 @@ function castValue(value: unknown): string | boolean | number | Date | null {
     //  - 2023-10-05T05:23:41.036+00:00
     //  - 2023-10-05T05:23:41.036132+00:00
     const isoLike = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+\-]\d{2}:?\d{2})$/i;
+
     if (isoLike.test(trimmed)) {
       // Normalize fractional seconds to max 3 digits (milliseconds) for stable Date parsing
       const normalized = trimmed.replace(
