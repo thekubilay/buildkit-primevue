@@ -16,7 +16,7 @@ import Button from "primevue/button";
 
 import FormKit from "buildkit-primevue"
 
-import {setFields, getPayload, clear} from "buildkit-primevue/utils"
+import {setFields, getPayload} from "buildkit-primevue/utils"
 import type {FormKitProps} from "buildkit-primevue/types/FormKitProps"
 
 
@@ -34,30 +34,15 @@ import useTestFields from "./components/useTestFields.ts";
 onMounted(() => {
   const data = {
     projects: ["サンプル1"],
-    project: "sample1",
+    project: null,
     name: "1111234234234",
     email: "example@gmail.com",
     content: "kubilay turgut",
     birthdate: "2023-10-05T05:23:41.036132Z",
-    // desired_m2: 70,
+    desired_m2: 70,
   }
 
   setFields(data, fields)
-
-  setTimeout(() => {
-    const data = {
-      project: "",
-      name: "",
-      email: "",
-      content: "",
-      birthdate: "",
-      // desired_m2: 70,
-    }
-
-    clear(data, fields)
-
-    // clear(form.value.states, fields)
-  }, 4000)
 
 })
 
