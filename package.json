@@ -100,7 +100,7 @@
     "tailwindcss": ">=4.1.13",
     "tailwindcss-primeui": "^0.6.1",
     "vue": ">=3.4",
-    "zod": ">=3.0.0"
+    "zod": "4.1.11"
   },
   "devDependencies": {
     "@types/jest": "^30.0.0",
