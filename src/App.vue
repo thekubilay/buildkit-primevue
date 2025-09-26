@@ -24,7 +24,7 @@ import {onMounted, reactive, ref} from "vue";
 
 import FormKit from "./components/formkit/FormKit.vue";
 import {setFields} from "./components/formkit/utils/setFields.ts";
-import {clear} from "./components/formkit/utils/clear.ts";
+// import {clear} from "./components/formkit/utils/clear.ts";
 import {getPayload} from "./components/formkit/utils/getPayload.ts";
 import type {FormKitProps} from "./components/formkit/types/FormKitProps.ts";
 
