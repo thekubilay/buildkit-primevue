@@ -14,19 +14,19 @@
 import Button from "primevue/button";
 
 
-import FormKit from "buildkit-primevue"
-
-import {setFields, getPayload} from "buildkit-primevue/utils"
-import type {FormKitProps} from "buildkit-primevue/types/FormKitProps"
+// import FormKit from "buildkit-primevue"
+//
+// import {setFields, getPayload} from "buildkit-primevue/utils"
+// import type {FormKitProps} from "buildkit-primevue/types/FormKitProps"
 
 
 import {onMounted, reactive, ref} from "vue";
 
-// import FormKit from "./components/formkit/FormKit.vue";
-// import {setFields} from "./components/formkit/utils/setFields.ts";
-// import {clear} from "./components/formkit/utils/clear.ts";
-// import {getPayload} from "./components/formkit/utils/getPayload.ts";
-// import type {FormKitProps} from "./components/formkit/types/FormKitProps.ts";
+import FormKit from "./components/formkit/FormKit.vue";
+import {setFields} from "./components/formkit/utils/setFields.ts";
+import {clear} from "./components/formkit/utils/clear.ts";
+import {getPayload} from "./components/formkit/utils/getPayload.ts";
+import type {FormKitProps} from "./components/formkit/types/FormKitProps.ts";
 
 import useTestFields from "./components/useTestFields.ts";
 

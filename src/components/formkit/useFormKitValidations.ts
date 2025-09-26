@@ -3,36 +3,41 @@ import {z} from "zod";
 import type {FormKitProps} from "./types/FormKitProps.ts";
 
 const useFormKitValidations = (fields?: FormKitProps['fields']) => {
-  // Set a localized error map so Zod default messages (like invalid type) are shown in Japanese
-  // This catches cases such as "Invalid input: expected string, received null"
 
-  //@ts-ignore
-  z.setErrorMap((issue, ctx) => {
-    if (issue.code === 'invalid_type') {
-      // If a value is missing/null, show a required-style message
-      if ((issue.received as any) === 'null' || (issue.received as any) === 'undefined') {
-        return {message: '必須項目です'};
+  // Create a custom error map that doesn't affect global Zod state
+  const createCustomErrorMap = () => {
+    return (issue: any, ctx: any) => {
+      if (issue.code === 'invalid_type') {
+        // If a value is missing/null, show a required-style message
+        if ((issue.received as any) === 'null' || (issue.received as any) === 'undefined') {
+          return {message: '必須項目です'};
+        }
+        const typeLabel: Record<string, string> = {
+          string: '文字列',
+          number: '数値',
+          boolean: '真偽値',
+          array: '配列',
+          date: '日付',
+          object: 'オブジェクト'
+        };
+        const expected = typeLabel[(issue as any).expected] || (issue as any).expected;
+        return {message: `無効な入力です（${expected}が必要です）`};
       }
-      const typeLabel: Record<string, string> = {
-        string: '文字列',
-        number: '数値',
-        boolean: '真偽値',
-        array: '配列',
-        date: '日付',
-        object: 'オブジェクト'
-      };
-      const expected = typeLabel[(issue as any).expected] || (issue as any).expected;
-      return {message: `無効な入力です（${expected}が必要です）`};
-    }
-    // Add specific handling for union validation errors
-    if (issue.code === 'invalid_union') {
-      // For union types (like Select fields), don't show the generic invalid type error
-      // Let the specific validation rules handle the messaging
-      return {message: '入力値が無効です'};
-    }
-    // Fallback to Zod defaults for other codes; custom rule messages we set elsewhere will override these.
-    return {message: (ctx && (ctx as any).defaultError) || '無効な入力です'};
-  });
+
+      // Add specific handling for union validation errors
+      if (issue.code === 'invalid_union') {
+        return {message: '選択された値が無効です'};
+      }
+
+      // Handle invalid literal (for Select fields)
+      if (issue.code === 'invalid_literal') {
+        return {message: '有効な選択肢を選んでください'};
+      }
+
+      // Fallback to a context default or generic message
+      return {message: (ctx && (ctx as any).defaultError) || '入力値が無効です'};
+    };
+  };
 
   const customRuleSchema: { [key: string]: (param?: string) => z.ZodType } = {
     // Basic required rule
@@ -59,13 +64,13 @@ const useFormKitValidations = (fields?: FormKitProps['fields']) => {
 
     // Katakana validation
     katakana: () => z.string().refine(
-      (value) => /^[ァ-ヶーｦ-ﾝﾞﾟ\s]*$/.test(value),
+      (value) => /^[ア-ヶーｦ-ﾟ\s]*$/.test(value),
       {message: "カタカナと空白のみで入力してください"}
     ),
 
     // Hiragana validation
     hiragana: () => z.string().refine(
-      (value) => /^[ぁ-んー\s]*$/.test(value),
+      (value) => /^[あ-んー\s]*$/.test(value),
       {message: "ひらがなと空白のみで入力してください"}
     ),
 
@@ -84,7 +89,7 @@ const useFormKitValidations = (fields?: FormKitProps['fields']) => {
     // No space validation
     nospace: () => z.string().refine(
       (value) => !/\s/.test(value),
-      {message: "空白を含めないでください"}
+      {message: "空白を含まないでください"}
     ),
 
     // Length validation (exact)
@@ -150,17 +155,50 @@ const useFormKitValidations = (fields?: FormKitProps['fields']) => {
     return schema instanceof z.ZodArray;
   };
 
+  // Helper function to create Select field schema with proper option validation
+  const createSelectSchema = (field: any): z.ZodType => {
+    const options = field.options || [];
+
+    if (!Array.isArray(options) || options.length === 0) {
+      // If no options provided, fall back to string validation
+      return z.string();
+    }
+
+    // Extract valid values from options
+    const validValues = options.map((opt: any) => opt.value);
+
+    if (validValues.length === 0) {
+      return z.string();
+    }
+
+    // Create union of literal values for the options
+    if (validValues.length === 1) {
+      return z.literal(validValues[0]);
+    }
+
+    // For multiple options, create a union of all possible values
+    const literalSchemas = validValues.map((value: any) => {
+      if (typeof value === 'string') return z.literal(value);
+      if (typeof value === 'number') return z.literal(value);
+      if (typeof value === 'boolean') return z.literal(value);
+      return z.literal(value);
+    });
+
+    //@ts-ignore
+    return z.union(literalSchemas as [z.ZodTypeAny, ...z.ZodTypeAny[]]);
+  };
+
   // Helper function to apply custom validation rules
   const applyCustomValidation = (fieldSchema: z.ZodString, rule: string, param?: string): z.ZodString => {
     switch (rule) {
       case 'katakana':
         return fieldSchema.refine(
-          (value) => /^[ァ-ヶーｦ-ﾝﾞﾟ\s]*$/.test(value),
+          (value) => /^[ア-ヶーｦ-ﾟ\s]*$/.test(value),
           {message: "カタカナと空白のみで入力してください"}
         );
       case 'hiragana':
         return fieldSchema.refine(
-          (value) => /^[ぁ-んー\s]*$/.test(value),
+          (value) => /^[あ-んー\s]*$/.test(value),
           {message: "ひらがなと空白のみで入力してください"}
         );
       case 'number':
@@ -176,7 +214,7 @@ const useFormKitValidations = (fields?: FormKitProps['fields']) => {
       case 'nospace':
         return fieldSchema.refine(
           (value) => !/\s/.test(value),
-          {message: "空白を含めないでください"}
+          {message: "空白を含まないでください"}
         );
       case 'regex':
         if (param) {
@@ -205,7 +243,7 @@ const useFormKitValidations = (fields?: FormKitProps['fields']) => {
 
       // Start with a base type based on field configuration
       if (field.type === 'number' || field.as === 'InputNumber') {
-        fieldSchema = z.number();
+        fieldSchema = z.number().nullable();
       } else if (field.as === 'Checkbox') {
         fieldSchema = z.boolean();
       } else if (field.as === 'DatePicker') {
@@ -217,9 +255,8 @@ const useFormKitValidations = (fields?: FormKitProps['fields']) => {
         field.as === 'RadioButton' ||
         (Array.isArray((field as any).options) && field.as !== 'MultiSelect' && field.as !== 'CheckboxGroup')
       ) {
-        // For Select fields, be more specific about the expected types
-        // Instead of a broad union, use z.any() to avoid union validation issues
-        fieldSchema = z.any();
+        // Use the new Select schema creation function
+        fieldSchema = createSelectSchema(field);
       } else {
         fieldSchema = z.string();
       }
@@ -298,13 +335,11 @@ const useFormKitValidations = (fields?: FormKitProps['fields']) => {
               }
             } else if (isZodDate(fieldSchema)) {
               if (rule === 'required') {
-                // z.date() cannot be null; we started with nullable to accommodate optionality
                 fieldSchema = (fieldSchema as z.ZodDate).nullable().refine((v) => v instanceof Date, {message: "必須項目です"});
               }
             } else if (isZodNumber(fieldSchema)) {
               if (rule === 'required') {
-                // Allow nulls at type level, but enforce non-null when required to avoid generic type errors
-                fieldSchema = (fieldSchema as z.ZodNumber).nullable().refine((v) => v !== null, {message: "必須項目です"});
+                fieldSchema = (fieldSchema as z.ZodNumber).nullable().refine((v) => v !== null && v !== undefined, {message: "必須項目です"});
               } else if (rule === 'min') {
                 const minValue = param ? parseFloat(param) : 0;
                 fieldSchema = (fieldSchema as z.ZodNumber).min(minValue, {message: `${minValue}以上で入力してください`});
@@ -321,9 +356,12 @@ const useFormKitValidations = (fields?: FormKitProps['fields']) => {
                 fieldSchema = (fieldSchema as any).refine((v: number | null) => v === null || v <= maxValue, {message: `${maxValue}以下で入力してください`});
               }
             } else {
-              // Handle z.any() fields (like Select)
+              // Handle Select/RadioButton and other union types
               if (rule === 'required') {
-                fieldSchema = (fieldSchema as any).refine((v: any) => v !== undefined && v !== null && v !== '', {message: '必須項目です'});
+                fieldSchema = (fieldSchema as any).refine(
+                  (v: any) => v !== undefined && v !== null && v !== '',
+                  {message: '必須項目です'}
+                );
               }
             }
           }
@@ -334,13 +372,13 @@ const useFormKitValidations = (fields?: FormKitProps['fields']) => {
           if (isZodString(fieldSchema)) {
             fieldSchema = fieldSchema.optional().or(z.literal(''));
           } else if (isZodNumber(fieldSchema)) {
-            // Accept null and undefined for optional number fields
             fieldSchema = (fieldSchema as z.ZodNumber).nullable().optional();
           } else if (isZodDate(fieldSchema)) {
-            // Accept null and undefined for optional date fields
             fieldSchema = (fieldSchema as z.ZodDate).nullable().optional();
+          } else if (field.as === 'Select' || field.as === 'RadioButton') {
+            // For Select fields, allow null/undefined when not required
+            fieldSchema = fieldSchema.nullable().optional();
           } else {
-            // For z.any() and other types
             fieldSchema = fieldSchema.optional();
           }
         }
@@ -349,6 +387,8 @@ const useFormKitValidations = (fields?: FormKitProps['fields']) => {
         if (!field.required) {
           if (isZodString(fieldSchema)) {
             fieldSchema = fieldSchema.optional().or(z.literal(''));
+          } else if (field.as === 'Select' || field.as === 'RadioButton') {
+            fieldSchema = fieldSchema.nullable().optional();
           } else {
             fieldSchema = fieldSchema.optional();
           }
@@ -358,13 +398,15 @@ const useFormKitValidations = (fields?: FormKitProps['fields']) => {
           } else if (isZodArray(fieldSchema)) {
             fieldSchema = fieldSchema.min(1, {message: "必須項目です"});
           } else if (isZodNumber(fieldSchema)) {
-            // For required numbers, allow null in input but convert to a friendly required error
-            fieldSchema = (fieldSchema as z.ZodNumber).nullable().refine((v) => v !== null, {message: "必須項目です"});
+            fieldSchema = (fieldSchema as z.ZodNumber).nullable().refine((v) => v !== null && v !== undefined, {message: "必須項目です"});
           } else if (isZodBoolean(fieldSchema)) {
             fieldSchema = fieldSchema.refine((v) => v === true, {message: "必須項目です"});
           } else {
-            // For z.any() and other types
-            fieldSchema = (fieldSchema as any).refine((v: any) => v !== undefined && v !== null && v !== '', {message: '必須項目です'});
+            // For Select and other types
+            fieldSchema = (fieldSchema as any).refine(
+              (v: any) => v !== undefined && v !== null && v !== '',
+              {message: '必須項目です'}
+            );
           }
         }
       }
@@ -375,7 +417,13 @@ const useFormKitValidations = (fields?: FormKitProps['fields']) => {
     return z.object(schemaObject);
   };
 
-  const resolver = fields ? zodResolver(createDynamicSchema(fields)) : zodResolver(z.object({}));
+  // Create resolver with custom error map applied locally
+  const resolver = fields ? zodResolver(
+    createDynamicSchema(fields),
+    {
+      errorMap: createCustomErrorMap()
+    }
+  ) : zodResolver(z.object({}), {errorMap: createCustomErrorMap()});
 
   return {
     resolver,
