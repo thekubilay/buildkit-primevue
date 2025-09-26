@@ -64,7 +64,7 @@ const useFormKitValidations = (fields?: FormKitProps['fields']) => {
 
     // Katakana validation
     katakana: () => z.string().refine(
-      (value) => /^[ア-ヶーｦ-ﾟ\s]*$/.test(value),
+      (value) => /^[ア-ヶー゠-ヿ\s]*$/.test(value),
       {message: "カタカナと空白のみで入力してください"}
     ),
 
@@ -135,20 +135,8 @@ const useFormKitValidations = (fields?: FormKitProps['fields']) => {
     return schema instanceof z.ZodString;
   };
 
-  const isZodNumber = (schema: z.ZodType): schema is z.ZodNumber => {
-    return schema instanceof z.ZodNumber;
-  };
-
   const isZodBoolean = (schema: z.ZodType): schema is z.ZodBoolean => {
     return schema instanceof z.ZodBoolean;
-  };
-
-  const isZodDate = (schema: z.ZodType): schema is z.ZodDate => {
-    return schema instanceof z.ZodDate;
-  };
-
-  const isZodNullableNumber = (schema: z.ZodType): schema is z.ZodNullable<z.ZodNumber> => {
-    return schema instanceof (z as any).ZodNullable && (schema as any)._def?.innerType instanceof z.ZodNumber;
   };
 
   const isZodArray = (schema: z.ZodType): schema is z.ZodArray<any> => {
@@ -159,27 +147,27 @@ const useFormKitValidations = (fields?: FormKitProps['fields']) => {
   const createSelectSchema = (field: any, isRequired: boolean = false): z.ZodType => {
     const options = field.options || [];
 
+    // For non-required select fields, always allow null, undefined, and empty string
+    if (!isRequired) {
+      // Use z.any() for non-required selects to avoid validation errors
+      return z.any().optional();
+    }
+
     if (!Array.isArray(options) || options.length === 0) {
       // If no options provided, fall back to string validation
-      if (isRequired) {
-        return z.string().min(1, {message: "必須項目です"});
-      } else {
-        return z.string().optional();
-      }
+      return z.string().min(1, {message: "必須項目です"});
     }
 
     // Extract valid values from options
-    const validValues = options.map((opt: any) => opt.value);
+    const validValues = options.map((opt: any) =>
+      (opt && typeof opt === 'object' && 'value' in opt) ? opt.value : opt
+    ).filter((v: any) => v !== undefined);
 
     if (validValues.length === 0) {
-      if (isRequired) {
-        return z.string().min(1, {message: "必須項目です"});
-      } else {
-        return z.string().optional();
-      }
+      return z.string().min(1, {message: "必須項目です"});
     }
 
-    // Create a union of literal values for the options
+    // Create a union of literal values for required fields only
     let literalSchemas;
     if (validValues.length === 1) {
       literalSchemas = [z.literal(validValues[0])];
@@ -192,16 +180,6 @@ const useFormKitValidations = (fields?: FormKitProps['fields']) => {
       });
     }
 
-    // Add an empty string option for non-required fields
-    //@ts-ignore
-    if (!isRequired) {
-      literalSchemas.push(z.literal(''));
-      //@ts-ignore
-      literalSchemas.push(z.undefined());
-      //@ts-ignore
-      literalSchemas.push(z.null());
-    }
-
     //@ts-ignore
     return z.union(literalSchemas as [z.ZodTypeAny, ...z.ZodTypeAny[]]);
   };
@@ -211,7 +189,7 @@ const useFormKitValidations = (fields?: FormKitProps['fields']) => {
     switch (rule) {
       case 'katakana':
         return fieldSchema.refine(
-          (value) => !value || /^[ア-ヶーｦ-ﾟ\s]*$/.test(value),
+          (value) => !value || /^[ア-ヶー゠-ヿ\s]*$/.test(value),
           {message: "カタカナと空白のみで入力してください"}
         );
       case 'hiragana':
@@ -268,11 +246,44 @@ const useFormKitValidations = (fields?: FormKitProps['fields']) => {
 
       // Start with a base type based on field configuration
       if (field.type === 'number' || field.as === 'InputNumber') {
-        fieldSchema = z.number().nullable();
+        const numberCoerce = z.preprocess((v: any) => {
+          if (v === '' || v === undefined) return undefined;
+          if (v === null) return null;
+          if (typeof v === 'string') {
+            const n = Number(v);
+            return Number.isFinite(n) ? n : v;
+          }
+          return v;
+        }, z.number({
+          message: "数値を入力してください"
+        }));
+
+        if (isRequired) {
+          fieldSchema = numberCoerce;
+        } else {
+          // For non-required number fields, allow null/undefined
+          fieldSchema = numberCoerce.optional().nullable();
+        }
       } else if (field.as === 'Checkbox') {
         fieldSchema = z.boolean();
       } else if (field.as === 'DatePicker') {
-        fieldSchema = z.date().nullable();
+        const dateCoerce = z.preprocess((v: any) => {
+          if (v === '' || v === undefined) return undefined;
+          if (v === null) return null;
+          if (typeof v === 'string') {
+            const t = Date.parse(v);
+            return isNaN(t) ? v : new Date(t);
+          }
+          return v;
+        }, z.date({
+          message: "日付を選択してください"
+        }));
+
+        if (isRequired) {
+          fieldSchema = dateCoerce;
+        } else {
+          fieldSchema = dateCoerce.optional().nullable();
+        }
       } else if (field.type === 'array' || field.as === 'MultiSelect' || field.as === 'CheckboxGroup' || Array.isArray(field.defaultValue)) {
         fieldSchema = z.array(z.any());
       } else if (
@@ -287,12 +298,13 @@ const useFormKitValidations = (fields?: FormKitProps['fields']) => {
         if (isRequired) {
           fieldSchema = z.string().min(1, {message: "必須項目です"});
         } else {
-          fieldSchema = z.string();
+          // For non-required string fields, accept any string including empty
+          fieldSchema = z.union([z.string(), z.null(), z.undefined()]).optional();
         }
       }
 
-      // Parse schema string if it exists
-      if (field.schema) {
+      // Parse schema string if it exists - only apply rules for required fields or specific validations
+      if (field.schema && isRequired) {
         const rules = parseSchemaString(field.schema);
 
         rules.forEach(({rule, param}) => {
@@ -358,50 +370,9 @@ const useFormKitValidations = (fields?: FormKitProps['fields']) => {
               if (rule === 'required') {
                 fieldSchema = fieldSchema.refine((v) => v === true, {message: "必須項目です"});
               }
-            } else if (isZodDate(fieldSchema)) {
-              if (rule === 'required') {
-                fieldSchema = (fieldSchema as z.ZodDate).nullable().refine((v) => v instanceof Date, {message: "必須項目です"});
-              }
-            } else if (isZodNumber(fieldSchema)) {
-              if (rule === 'required') {
-                fieldSchema = (fieldSchema as z.ZodNumber).nullable().refine((v) => v !== null && v !== undefined, {message: "必須項目です"});
-              } else if (rule === 'min') {
-                const minValue = param ? parseFloat(param) : 0;
-                fieldSchema = (fieldSchema as z.ZodNumber).min(minValue, {message: `${minValue}以上で入力してください`});
-              } else if (rule === 'max') {
-                const maxValue = param ? parseFloat(param) : 1000000;
-                fieldSchema = (fieldSchema as z.ZodNumber).max(maxValue, {message: `${maxValue}以下で入力してください`});
-              }
-            } else if (isZodNullableNumber(fieldSchema)) {
-              if (rule === 'min') {
-                const minValue = param ? parseFloat(param) : 0;
-                fieldSchema = (fieldSchema as any).refine((v: number | null) => v === null || v >= minValue, {message: `${minValue}以上で入力してください`});
-              } else if (rule === 'max') {
-                const maxValue = param ? parseFloat(param) : 1000000;
-                fieldSchema = (fieldSchema as any).refine((v: number | null) => v === null || v <= maxValue, {message: `${maxValue}以下で入力してください`});
-              }
             }
           }
         });
-      }
-
-      // Handle making fields optional - this is the key fix
-      if (!isRequired) {
-        if (isZodString(fieldSchema)) {
-          // Simply make the string optional - don't use complex unions
-          fieldSchema = fieldSchema.optional();
-        } else if (isZodNumber(fieldSchema)) {
-          fieldSchema = (fieldSchema as z.ZodNumber).nullable().optional();
-        } else if (isZodDate(fieldSchema)) {
-          fieldSchema = (fieldSchema as z.ZodDate).nullable().optional();
-        } else if (isZodArray(fieldSchema)) {
-          fieldSchema = fieldSchema.optional();
-        } else if (isZodBoolean(fieldSchema)) {
-          fieldSchema = fieldSchema.optional();
-        } else {
-          // For Select and other types, make them optional
-          fieldSchema = fieldSchema.optional();
-        }
       }
 
       schemaObject[fieldName] = fieldSchema;
@@ -411,8 +382,6 @@ const useFormKitValidations = (fields?: FormKitProps['fields']) => {
   };
 
   // Create resolver with custom error map applied locally
-  // But some validations (e.g., first submit) might bypass the provided errorMap.
-  // To guarantee Japanese messages consistently, temporarily set Zod's global error map during resolve.
   const baseResolver = fields
     ? zodResolver(
       createDynamicSchema(fields),
@@ -420,6 +389,7 @@ const useFormKitValidations = (fields?: FormKitProps['fields']) => {
     )
     : zodResolver(z.object({}), { errorMap: createCustomErrorMap() });
 
+  // Wrap resolver to temporarily set global Zod errorMap for any internal paths that ignore the local option
   const resolver = async (...args: any[]) => {
     const getErrorMap = (z as any).getErrorMap as (() => any) | undefined;
     const setErrorMap = (z as any).setErrorMap as ((map: any) => void) | undefined;
@@ -429,10 +399,9 @@ const useFormKitValidations = (fields?: FormKitProps['fields']) => {
 
     if (setErrorMap) setErrorMap(jpMap);
     try {
-      // Delegate to PrimeVue's Zod resolver
       return await (baseResolver as any)(...args);
     } finally {
-      if (setErrorMap && prevMap) setErrorMap(prevMap);
+      if (setErrorMap) setErrorMap(prevMap);
     }
   };
 
