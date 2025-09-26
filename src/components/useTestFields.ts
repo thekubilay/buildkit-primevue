@@ -19,7 +19,7 @@ const useTestFields = () => {
       label: "プロジェクト",
       as: "Select",
       defaultValue: '',
-      schema: "required", // Required field
+      // schema: "required", // Required field
       class: "w-full",
       colSpan: {mobile: 1, tablet: 2, desktop: 1}, // Responsive
       optionLabel: "label",
