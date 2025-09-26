@@ -179,7 +179,7 @@ const useFormKitValidations = (fields?: FormKitProps['fields']) => {
       }
     }
 
-    // Create union of literal values for the options
+    // Create a union of literal values for the options
     let literalSchemas;
     if (validValues.length === 1) {
       literalSchemas = [z.literal(validValues[0])];
