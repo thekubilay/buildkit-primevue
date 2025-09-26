@@ -149,6 +149,7 @@ const useTestFields = () => {
       colSpan: {mobile: 1, tablet: 1, desktop: 1}, // Responsive
       binary: true,
       defaultValue: false,
+      class: "w-full"
     },
     terms: {
       label: "利用規約に同意する",
@@ -158,6 +159,7 @@ const useTestFields = () => {
       colSpan: {mobile: 1, tablet: 1, desktop: 1}, // Responsive
       binary: true,
       schema: "required", // Must be checked to submit
+      class: "w-full"
     },
     gender: {
       label: "性別",

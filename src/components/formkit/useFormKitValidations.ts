@@ -411,12 +411,30 @@ const useFormKitValidations = (fields?: FormKitProps['fields']) => {
   };
 
   // Create resolver with custom error map applied locally
-  const resolver = fields ? zodResolver(
-    createDynamicSchema(fields),
-    {
-      errorMap: createCustomErrorMap()
+  // But some validations (e.g., first submit) might bypass the provided errorMap.
+  // To guarantee Japanese messages consistently, temporarily set Zod's global error map during resolve.
+  const baseResolver = fields
+    ? zodResolver(
+      createDynamicSchema(fields),
+      { errorMap: createCustomErrorMap() }
+    )
+    : zodResolver(z.object({}), { errorMap: createCustomErrorMap() });
+
+  const resolver = async (...args: any[]) => {
+    const getErrorMap = (z as any).getErrorMap as (() => any) | undefined;
+    const setErrorMap = (z as any).setErrorMap as ((map: any) => void) | undefined;
+
+    const prevMap = getErrorMap ? getErrorMap() : undefined;
+    const jpMap = createCustomErrorMap();
+
+    if (setErrorMap) setErrorMap(jpMap);
+    try {
+      // Delegate to PrimeVue's Zod resolver
+      return await (baseResolver as any)(...args);
+    } finally {
+      if (setErrorMap && prevMap) setErrorMap(prevMap);
     }
-  ) : zodResolver(z.object({}), {errorMap: createCustomErrorMap()});
+  };
 
   return {
     resolver,
