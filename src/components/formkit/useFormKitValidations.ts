@@ -4,7 +4,7 @@ import type {FormKitProps} from "./types/FormKitProps.ts";
 
 const useFormKitValidations = (fields?: FormKitProps['fields']) => {
 
-  // Create a custom error map that doesn't affect global Zod state
+  // Create a custom error map that doesn't affect the global Zod state
   const createCustomErrorMap = () => {
     return (issue: any, ctx: any) => {
       if (issue.code === 'invalid_type') {
@@ -156,33 +156,51 @@ const useFormKitValidations = (fields?: FormKitProps['fields']) => {
   };
 
   // Helper function to create Select field schema with proper option validation
-  const createSelectSchema = (field: any): z.ZodType => {
+  const createSelectSchema = (field: any, isRequired: boolean = false): z.ZodType => {
     const options = field.options || [];
 
     if (!Array.isArray(options) || options.length === 0) {
       // If no options provided, fall back to string validation
-      return z.string();
+      if (isRequired) {
+        return z.string().min(1, {message: "必須項目です"});
+      } else {
+        return z.string().optional();
+      }
     }
 
     // Extract valid values from options
     const validValues = options.map((opt: any) => opt.value);
 
     if (validValues.length === 0) {
-      return z.string();
+      if (isRequired) {
+        return z.string().min(1, {message: "必須項目です"});
+      } else {
+        return z.string().optional();
+      }
     }
 
     // Create union of literal values for the options
+    let literalSchemas;
     if (validValues.length === 1) {
-      return z.literal(validValues[0]);
+      literalSchemas = [z.literal(validValues[0])];
+    } else {
+      literalSchemas = validValues.map((value: any) => {
+        if (typeof value === 'string') return z.literal(value);
+        if (typeof value === 'number') return z.literal(value);
+        if (typeof value === 'boolean') return z.literal(value);
+        return z.literal(value);
+      });
     }
 
-    // For multiple options, create a union of all possible values
-    const literalSchemas = validValues.map((value: any) => {
-      if (typeof value === 'string') return z.literal(value);
-      if (typeof value === 'number') return z.literal(value);
-      if (typeof value === 'boolean') return z.literal(value);
-      return z.literal(value);
-    });
+    // Add an empty string option for non-required fields
+    //@ts-ignore
+    if (!isRequired) {
+      literalSchemas.push(z.literal(''));
+      //@ts-ignore
+      literalSchemas.push(z.undefined());
+      //@ts-ignore
+      literalSchemas.push(z.null());
+    }
 
     //@ts-ignore
     return z.union(literalSchemas as [z.ZodTypeAny, ...z.ZodTypeAny[]]);
@@ -193,27 +211,27 @@ const useFormKitValidations = (fields?: FormKitProps['fields']) => {
     switch (rule) {
       case 'katakana':
         return fieldSchema.refine(
-          (value) => /^[ア-ヶーｦ-ﾟ\s]*$/.test(value),
+          (value) => !value || /^[ア-ヶーｦ-ﾟ\s]*$/.test(value),
           {message: "カタカナと空白のみで入力してください"}
         );
       case 'hiragana':
         return fieldSchema.refine(
-          (value) => /^[あ-んー\s]*$/.test(value),
+          (value) => !value || /^[あ-んー\s]*$/.test(value),
           {message: "ひらがなと空白のみで入力してください"}
         );
       case 'number':
         return fieldSchema.refine(
-          (value) => value === '' || /^\d+$/.test(value),
+          (value) => !value || /^\d+$/.test(value),
           {message: "数字のみで入力してください"}
         );
       case 'romaji':
         return fieldSchema.refine(
-          (value) => value.length === 0 || /^[a-zA-Z0-9_-]+$/.test(value),
+          (value) => !value || /^[a-zA-Z0-9_-]+$/.test(value),
           {message: "ローマ字、数字、アンダースコア、ハイフンのみで入力してください"}
         );
       case 'nospace':
         return fieldSchema.refine(
-          (value) => !/\s/.test(value),
+          (value) => !value || !/\s/.test(value),
           {message: "空白を含まないでください"}
         );
       case 'regex':
@@ -221,7 +239,7 @@ const useFormKitValidations = (fields?: FormKitProps['fields']) => {
           try {
             const regex = new RegExp(param);
             return fieldSchema.refine(
-              (value) => regex.test(value),
+              (value) => !value || regex.test(value),
               {message: "入力形式が正しくありません"}
             );
           } catch (error) {
@@ -241,6 +259,13 @@ const useFormKitValidations = (fields?: FormKitProps['fields']) => {
       const field = fields[fieldName];
       let fieldSchema: z.ZodType = z.string();
 
+      // Parse schema string to determine if field is required
+      let isRequired = field.required || false;
+      if (field.schema) {
+        const rules = parseSchemaString(field.schema);
+        isRequired = isRequired || rules.some(({rule}) => rule === 'required');
+      }
+
       // Start with a base type based on field configuration
       if (field.type === 'number' || field.as === 'InputNumber') {
         fieldSchema = z.number().nullable();
@@ -256,21 +281,21 @@ const useFormKitValidations = (fields?: FormKitProps['fields']) => {
         (Array.isArray((field as any).options) && field.as !== 'MultiSelect' && field.as !== 'CheckboxGroup')
       ) {
         // Use the new Select schema creation function
-        fieldSchema = createSelectSchema(field);
+        fieldSchema = createSelectSchema(field, isRequired);
       } else {
-        fieldSchema = z.string();
+        // For string fields, handle optional vs required differently
+        if (isRequired) {
+          fieldSchema = z.string().min(1, {message: "必須項目です"});
+        } else {
+          fieldSchema = z.string();
+        }
       }
 
       // Parse schema string if it exists
       if (field.schema) {
         const rules = parseSchemaString(field.schema);
-        let isRequired = false;
 
         rules.forEach(({rule, param}) => {
-          if (rule === 'required') {
-            isRequired = true;
-          }
-
           if (customRuleSchema[rule]) {
             // Handle different field types using proper type checking
             if (isZodString(fieldSchema)) {
@@ -309,7 +334,7 @@ const useFormKitValidations = (fields?: FormKitProps['fields']) => {
                 try {
                   const regex = new RegExp(param);
                   fieldSchema = fieldSchema.refine(
-                    (value) => regex.test(value),
+                    (value) => !value || regex.test(value),
                     {message: "入力形式が正しくありません"}
                   );
                 } catch (error) {
@@ -355,59 +380,27 @@ const useFormKitValidations = (fields?: FormKitProps['fields']) => {
                 const maxValue = param ? parseFloat(param) : 1000000;
                 fieldSchema = (fieldSchema as any).refine((v: number | null) => v === null || v <= maxValue, {message: `${maxValue}以下で入力してください`});
               }
-            } else {
-              // Handle Select/RadioButton and other union types
-              if (rule === 'required') {
-                fieldSchema = (fieldSchema as any).refine(
-                  (v: any) => v !== undefined && v !== null && v !== '',
-                  {message: '必須項目です'}
-                );
-              }
             }
           }
         });
+      }
 
-        // Make field optional if not required
-        if (!isRequired && !field.required) {
-          if (isZodString(fieldSchema)) {
-            fieldSchema = fieldSchema.optional().or(z.literal(''));
-          } else if (isZodNumber(fieldSchema)) {
-            fieldSchema = (fieldSchema as z.ZodNumber).nullable().optional();
-          } else if (isZodDate(fieldSchema)) {
-            fieldSchema = (fieldSchema as z.ZodDate).nullable().optional();
-          } else if (field.as === 'Select' || field.as === 'RadioButton') {
-            // For Select fields, allow null/undefined when not required
-            fieldSchema = fieldSchema.nullable().optional();
-          } else {
-            fieldSchema = fieldSchema.optional();
-          }
-        }
-      } else {
-        // Fallback to the required field check if no schema
-        if (!field.required) {
-          if (isZodString(fieldSchema)) {
-            fieldSchema = fieldSchema.optional().or(z.literal(''));
-          } else if (field.as === 'Select' || field.as === 'RadioButton') {
-            fieldSchema = fieldSchema.nullable().optional();
-          } else {
-            fieldSchema = fieldSchema.optional();
-          }
+      // Handle making fields optional - this is the key fix
+      if (!isRequired) {
+        if (isZodString(fieldSchema)) {
+          // Simply make the string optional - don't use complex unions
+          fieldSchema = fieldSchema.optional();
+        } else if (isZodNumber(fieldSchema)) {
+          fieldSchema = (fieldSchema as z.ZodNumber).nullable().optional();
+        } else if (isZodDate(fieldSchema)) {
+          fieldSchema = (fieldSchema as z.ZodDate).nullable().optional();
+        } else if (isZodArray(fieldSchema)) {
+          fieldSchema = fieldSchema.optional();
+        } else if (isZodBoolean(fieldSchema)) {
+          fieldSchema = fieldSchema.optional();
         } else {
-          if (isZodString(fieldSchema)) {
-            fieldSchema = fieldSchema.min(1, {message: "必須項目です"});
-          } else if (isZodArray(fieldSchema)) {
-            fieldSchema = fieldSchema.min(1, {message: "必須項目です"});
-          } else if (isZodNumber(fieldSchema)) {
-            fieldSchema = (fieldSchema as z.ZodNumber).nullable().refine((v) => v !== null && v !== undefined, {message: "必須項目です"});
-          } else if (isZodBoolean(fieldSchema)) {
-            fieldSchema = fieldSchema.refine((v) => v === true, {message: "必須項目です"});
-          } else {
-            // For Select and other types
-            fieldSchema = (fieldSchema as any).refine(
-              (v: any) => v !== undefined && v !== null && v !== '',
-              {message: '必須項目です'}
-            );
-          }
+          // For Select and other types, make them optional
+          fieldSchema = fieldSchema.optional();
         }
       }
 
