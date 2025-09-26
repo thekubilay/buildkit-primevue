@@ -8,7 +8,13 @@ export function getPayload(states: Record<string, FormFieldState>, fields?: Reco
     if (Object.prototype.hasOwnProperty.call(states, field)) {
       const state = states[field];
       const as = fields?.[field]?.as;
-      payload[field] = castValue(state.value, as);
+      const castedValue = castValue(state.value, as)
+
+      if (typeof castedValue === "string" && castedValue.includes("GMT")) {
+        payload[field] = new Date(castedValue).toISOString();
+      } else {
+        payload[field] = castedValue;
+      }
     }
   }
 

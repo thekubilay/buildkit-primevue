@@ -76,6 +76,7 @@ function castValue(value: unknown, as?: CastComponent): string | boolean | numbe
     // Date casting (ISO-8601)
     if (isDateLike === true || (isDateLike === undefined)) {
       const isoLike = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+\-]\d{2}:?\d{2})$/i;
+
       if (isoLike.test(trimmed)) {
         // Normalize fractional seconds to max 3 digits (milliseconds) for stable Date parsing
         const normalized = trimmed.replace(
@@ -87,6 +88,7 @@ function castValue(value: unknown, as?: CastComponent): string | boolean | numbe
         );
         const d = new Date(normalized);
         if (!isNaN(d.getTime())) {
+          console.log("22")
           return d;
         }
       }
