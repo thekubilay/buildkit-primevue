@@ -1,4 +1,5 @@
 import {reactive} from "@vue/runtime-core";
+import emails from "./emails.ts";
 
 const useTestFields = () => {
   const fields = reactive<any>({
@@ -8,27 +9,21 @@ const useTestFields = () => {
       defaultValue: [],
       schema: "required", // At least 1, max 3 selections
       colSpan: {mobile: 1, tablet: 2, desktop: 1}, // Responsive
-      options: [
-        "サンプル1",
-        "サンプル2",
-        "サンプル3",
-      ],
+      optionLabel:"name",
+      optionValue: "id",
+      options: [1,2,3,4,5,6],
     },
     project: {
       inputId: "project_id",
       label: "プロジェクト",
       as: "Select",
-      defaultValue: '',
+      defaultValue: null,
       // schema: "required", // Required field
       class: "w-full",
       colSpan: {mobile: 1, tablet: 2, desktop: 1}, // Responsive
-      optionLabel: "label",
-      optionValue: "value",
-      options: [
-        {label: "サンプル1", value: "sample1"},
-        {label: "サンプル2", value: "sample2"},
-        {label: "サンプル3", value: "sample3"}
-      ]
+      optionLabel:"name",
+      optionValue: "id",
+      options: emails
     },
     desired_m2: {
       inputId: "desired_m2_id",

@@ -34,6 +34,11 @@ const useFormKitValidations = (fields?: FormKitProps['fields']) => {
         return {message: '有効な選択肢を選んでください'};
       }
 
+      // Handle invalid enum
+      if (issue.code === 'invalid_enum_value') {
+        return {message: '有効な選択肢を選んでください'};
+      }
+
       // Fallback to a context default or generic message
       return {message: (ctx && (ctx as any).defaultError) || '入力値が無効です'};
     };
@@ -149,39 +154,62 @@ const useFormKitValidations = (fields?: FormKitProps['fields']) => {
 
     // For non-required select fields, always allow null, undefined, and empty string
     if (!isRequired) {
-      // Use z.any() for non-required selects to avoid validation errors
       return z.any().optional();
     }
 
     if (!Array.isArray(options) || options.length === 0) {
-      // If no options provided, fall back to string validation
       return z.string().min(1, {message: "必須項目です"});
     }
 
     // Extract valid values from options
     const validValues = options.map((opt: any) =>
       (opt && typeof opt === 'object' && 'value' in opt) ? opt.value : opt
-    ).filter((v: any) => v !== undefined);
+    ).filter((v: any) => v !== undefined && v !== null);
 
     if (validValues.length === 0) {
       return z.string().min(1, {message: "必須項目です"});
     }
 
-    // Create a union of literal values for required fields only
-    let literalSchemas;
-    if (validValues.length === 1) {
-      literalSchemas = [z.literal(validValues[0])];
-    } else {
-      literalSchemas = validValues.map((value: any) => {
-        if (typeof value === 'string') return z.literal(value);
-        if (typeof value === 'number') return z.literal(value);
-        if (typeof value === 'boolean') return z.literal(value);
-        return z.literal(value);
+    // Check if all values are strings
+    const allStrings = validValues.every((v: any) => typeof v === 'string');
+
+    if (allStrings && validValues.length > 0) {
+      // Use z.enum for string values - this is more reliable across Zod instances
+      //@ts-ignore
+      return z.enum(validValues as [string, ...string[]], {
+        errorMap: () => ({ message: "有効な選択肢を選んでください" })
       });
     }
 
-    //@ts-ignore
-    return z.union(literalSchemas as [z.ZodTypeAny, ...z.ZodTypeAny[]]);
+    // Check if all values are numbers
+    const allNumbers = validValues.every((v: any) => typeof v === 'number');
+
+    if (allNumbers && validValues.length > 0) {
+      // For numbers, use refine approach as z.enum only works with strings
+      return z.number().refine(
+        (value) => validValues.includes(value),
+        { message: "有効な選択肢を選んでください" }
+      );
+    }
+
+    // For mixed types or other cases, use a refine approach
+    return z.any().refine(
+      (value) => validValues.some(v => {
+        // Strict equality check
+        if (typeof v === typeof value) {
+          return v === value;
+        }
+        // String-number comparison for form values
+        if (typeof v === 'number' && typeof value === 'string') {
+          return v === Number(value);
+        }
+        if (typeof v === 'string' && typeof value === 'number') {
+          return Number(v) === value;
+        }
+        return false;
+      }),
+      { message: "有効な選択肢を選んでください" }
+    );
   };
 
   // Helper function to apply custom validation rules
@@ -237,7 +265,7 @@ const useFormKitValidations = (fields?: FormKitProps['fields']) => {
       const field = fields[fieldName];
       let fieldSchema: z.ZodType = z.string();
 
-      // Parse schema string to determine if field is required
+      // Parse schema string to determine if a field is required
       let isRequired = field.required || false;
       if (field.schema) {
         const rules = parseSchemaString(field.schema);
@@ -291,7 +319,7 @@ const useFormKitValidations = (fields?: FormKitProps['fields']) => {
         field.as === 'RadioButton' ||
         (Array.isArray((field as any).options) && field.as !== 'MultiSelect' && field.as !== 'CheckboxGroup')
       ) {
-        // Use the new Select schema creation function
+        // Use the improved Select schema creation function
         fieldSchema = createSelectSchema(field, isRequired);
       } else {
         // For string fields, handle optional vs required differently
