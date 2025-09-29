@@ -158,7 +158,11 @@ const useFormKitValidations = (fields?: FormKitProps['fields']) => {
     }
 
     if (!Array.isArray(options) || options.length === 0) {
-      return z.string().min(1, {message: "必須項目です"});
+      // Use z.any() for required fields without options to avoid type issues
+      return z.any().refine(
+        (value) => value !== null && value !== undefined && value !== '',
+        { message: "必須項目です" }
+      );
     }
 
     // Extract valid values from options
@@ -167,7 +171,10 @@ const useFormKitValidations = (fields?: FormKitProps['fields']) => {
     ).filter((v: any) => v !== undefined && v !== null);
 
     if (validValues.length === 0) {
-      return z.string().min(1, {message: "必須項目です"});
+      return z.any().refine(
+        (value) => value !== null && value !== undefined && value !== '',
+        { message: "必須項目です" }
+      );
     }
 
     // Check if all values are strings
@@ -185,30 +192,78 @@ const useFormKitValidations = (fields?: FormKitProps['fields']) => {
     const allNumbers = validValues.every((v: any) => typeof v === 'number');
 
     if (allNumbers && validValues.length > 0) {
-      // For numbers, use refine approach as z.enum only works with strings
-      return z.number().refine(
+      // For numbers, use z.union of literals with coercion
+      const numberSchema = z.preprocess((v: any) => {
+        if (typeof v === 'string' && v !== '') {
+          const parsed = Number(v);
+          return isNaN(parsed) ? v : parsed;
+        }
+        return v;
+      }, z.number());
+
+      return numberSchema.refine(
         (value) => validValues.includes(value),
         { message: "有効な選択肢を選んでください" }
       );
     }
 
-    // For mixed types or other cases, use a refine approach
-    return z.any().refine(
-      (value) => validValues.some(v => {
-        // Strict equality check
-        if (typeof v === typeof value) {
-          return v === value;
+    // Check if all values are booleans
+    const allBooleans = validValues.every((v: any) => typeof v === 'boolean');
+
+    if (allBooleans && validValues.length > 0) {
+      // For booleans, use z.union of literals with coercion
+      const booleanSchema = z.preprocess((v: any) => {
+        if (typeof v === 'string') {
+          if (v === 'true') return true;
+          if (v === 'false') return false;
         }
-        // String-number comparison for form values
-        if (typeof v === 'number' && typeof value === 'string') {
-          return v === Number(value);
+        return v;
+      }, z.boolean());
+
+      return booleanSchema.refine(
+        (value) => validValues.includes(value),
+        { message: "有効な選択肢を選んでください" }
+      );
+    }
+
+    // For mixed types or other cases, use a refine approach with type coercion
+    return z.preprocess((v: any) => {
+      // Handle string to number conversion
+      if (typeof v === 'string' && v !== '') {
+        const asNumber = Number(v);
+        if (!isNaN(asNumber) && validValues.some((val: any) => typeof val === 'number')) {
+          return asNumber;
         }
-        if (typeof v === 'string' && typeof value === 'number') {
-          return Number(v) === value;
+        // Handle string to boolean conversion
+        if (v === 'true' && validValues.includes(true)) return true;
+        if (v === 'false' && validValues.includes(false)) return false;
+      }
+      return v;
+    }, z.any()).refine(
+      (value) => {
+        if (value === null || value === undefined || value === '') {
+          return false; // Required field cannot be empty
         }
-        return false;
-      }),
-      { message: "有効な選択肢を選んでください" }
+
+        return validValues.some(v => {
+          // Strict equality check
+          if (v === value) return true;
+
+          // Type coercion for form values
+          if (typeof v === 'number' && typeof value === 'string') {
+            return v === Number(value);
+          }
+          if (typeof v === 'string' && typeof value === 'number') {
+            return Number(v) === value;
+          }
+          if (typeof v === 'boolean' && typeof value === 'string') {
+            return (v === true && value === 'true') || (v === false && value === 'false');
+          }
+
+          return false;
+        });
+      },
+      { message: isRequired ? "有効な選択肢を選んでください" : "必須項目です" }
     );
   };
 
@@ -265,7 +320,7 @@ const useFormKitValidations = (fields?: FormKitProps['fields']) => {
       const field = fields[fieldName];
       let fieldSchema: z.ZodType = z.string();
 
-      // Parse schema string to determine if a field is required
+      // Parse schema string to determine if field is required
       let isRequired = field.required || false;
       if (field.schema) {
         const rules = parseSchemaString(field.schema);
