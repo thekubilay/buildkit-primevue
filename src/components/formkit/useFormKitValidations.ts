@@ -67,9 +67,9 @@ const useFormKitValidations = (fields?: FormKitProps['fields']) => {
       return z.string().max(maxValue, {message: `最大${maxValue}文字で入力してください`});
     },
 
-    // Katakana validation
+    // Katakana validation - supports both full-width and half-width katakana
     katakana: () => z.string().refine(
-      (value) => /^[ア-ヶー゠-ヿ\s]*$/.test(value),
+      (value) => /^[ア-ヶー゠-ヿｦ-ﾟ\s]*$/.test(value),
       {message: "カタカナと空白のみで入力してください"}
     ),
 
@@ -272,7 +272,7 @@ const useFormKitValidations = (fields?: FormKitProps['fields']) => {
     switch (rule) {
       case 'katakana':
         return fieldSchema.refine(
-          (value) => !value || /^[ア-ヶー゠-ヿ\s]*$/.test(value),
+          (value) => !value || /^[ア-ヶー゠-ヿｦ-ﾟ\s]*$/.test(value),
           {message: "カタカナと空白のみで入力してください"}
         );
       case 'hiragana':

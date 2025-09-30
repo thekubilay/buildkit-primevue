@@ -43,11 +43,15 @@ function castValue(value: unknown, as?: CastComponent): string | boolean | numbe
   const isNumberLike = as ? ['InputNumber', 'Slider'].includes(as) : undefined;
   const isBooleanLike = as ? ['Checkbox', 'ToggleButton', 'InputSwitch'].includes(as) : undefined;
   const isDateLike = as ? ['Calendar', 'DatePicker'].includes(as) : undefined;
-  const isTextLike = as ? ['InputText', 'Textarea', 'Editor', 'Password', 'Chips', 'Select'].includes(as) : undefined;
+  // const isTextLike = as ? ['InputText', 'Textarea', 'Editor', 'Password', 'Chips', 'Select'].includes(as) : undefined;
   const isMultiSelect = as === 'MultiSelect';
 
   // Special handling for MultiSelect
   if (isMultiSelect) {
+    if (typeof value === null) {
+      return []
+    }
+
     if (Array.isArray(value)) {
       return value;
     }
@@ -95,7 +99,7 @@ function castValue(value: unknown, as?: CastComponent): string | boolean | numbe
     }
 
     // Number casting
-    if (isNumberLike === true || (isNumberLike === undefined && isTextLike !== true)) {
+    if (isNumberLike === true) {
       const num = Number(trimmed);
       if (!isNaN(num) && trimmed !== '') return num;
     }
@@ -110,6 +114,10 @@ function castValue(value: unknown, as?: CastComponent): string | boolean | numbe
 
   if (typeof value === 'number') {
     return isNaN(value) ? null : value;
+  }
+
+  if (typeof value === null) {
+    return "";
   }
 
   // For other types, try to convert to string
