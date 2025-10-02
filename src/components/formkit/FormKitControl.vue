@@ -96,7 +96,7 @@ const buttonTypeClass = computed(() => {
 
 const buttonTypeClassActiveClass = computed(() => (val: any) => {
   return {
-    "border-primary-400 ring-3 ring-primary-200 bg-primary-50 text-primary-500": props.rest.buttonType && val === currentValue.value,
+    "border-primary-500 ring-3 ring-primary-200/50 bg-primary-50 text-primary-500": props.rest.buttonType && val === currentValue.value,
     "border-surface-300 ring-0": props.rest.buttonType && val !== currentValue.value
   }
 })
