@@ -3,15 +3,31 @@ import emails from "./emails.ts";
 
 const useTestFields = () => {
   const fields = reactive<any>({
+    gender: {
+      label: "性別",
+      as: "RadioButton",
+      defaultValue: '',
+      schema: "required",
+      colSpan: {mobile: 1, tablet: 1, desktop: 1}, // Responsive
+      class: "w-full",
+      buttonType: true,
+      buttonTypeClass: "w-[calc(25%-0.375rem)] rounded-md text-xs",
+      // vertical: true,
+      options: [
+        {label: "男性", value: "male"},
+        {label: "女性", value: "female"},
+        {label: "その他", value: "other"}
+      ]
+    },
     projects: {
       label: "興味のある分野",
       as: "MultiSelect",
       defaultValue: [],
       schema: "required", // At least 1, max 3 selections
       colSpan: {mobile: 1, tablet: 2, desktop: 1}, // Responsive
-      optionLabel:"name",
+      optionLabel: "name",
       optionValue: "id",
-      options: [1,2,3,4,5,6],
+      options: [1, 2, 3, 4, 5, 6],
     },
     project: {
       inputId: "project_id",
@@ -21,7 +37,7 @@ const useTestFields = () => {
       // schema: "required", // Required field
       class: "w-full",
       colSpan: {mobile: 1, tablet: 2, desktop: 1}, // Responsive
-      optionLabel:"name",
+      optionLabel: "name",
       optionValue: "id",
       options: emails
     },
@@ -155,19 +171,6 @@ const useTestFields = () => {
       binary: true,
       schema: "required", // Must be checked to submit
       class: "w-full"
-    },
-    gender: {
-      label: "性別",
-      as: "RadioButton",
-      defaultValue: '',
-      schema: "required",
-      colSpan: {mobile: 1, tablet: 1, desktop: 1}, // Responsive
-      vertical: true,
-      options: [
-        {label: "男性", value: "male"},
-        {label: "女性", value: "female"},
-        {label: "その他", value: "other"}
-      ]
     },
     interests: {
       label: "興味のある分野",

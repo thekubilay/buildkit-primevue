@@ -1,5 +1,5 @@
 <template>
-  <label :for="forId" class="flex text-xs">
+  <label :for="forId" class="flex text-xxs text-surface-700">
     <slot/>
     <span v-if="required" class="text-red-500">*</span>
   </label>

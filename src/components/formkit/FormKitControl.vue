@@ -1,18 +1,19 @@
 <template>
   <!-- CheckboxGroup rendering -->
   <div v-if="restAs === 'CheckboxGroup' && hasOptions" class="flex gap-2 pt-1" :class="classNameGroup">
-    <div v-for="(opt, i) in options" :key="i" class="flex items-center gap-2">
+    <label v-for="(opt, i) in options" :key="i" :for="`${name}-${i}`" class="flex items-center gap-2">
       <component :is="PrimeCheckbox" :name="name" :inputId="`${name}-${i}`" :value="opt.value" :size="size"/>
-      <label :for="`${name}-${i}`" class="text-sm">{{ opt.label }}</label>
-    </div>
+      <span class="text-sm">{{ opt.label }}</span>
+    </label>
   </div>
 
   <!-- RadioButton group rendering -->
   <div v-else-if="restAs === 'RadioButton' && hasOptions" class="flex gap-2 pt-1" :class="classNameGroup">
-    <div v-for="(opt, i) in options" :key="i" class="flex items-center gap-2">
+    <label v-for="(opt, i) in options" :key="i" :for="`${name}-${i}`" class="flex items-center gap-2 duration-200"
+           :class="[buttonTypeClass, buttonTypeClassActiveClass(opt.value)]">
       <component :is="PrimeRadioButton" :name="name" :inputId="`${name}-${i}`" :value="opt.value" :size="size"/>
-      <label :for="`${name}-${i}`" class="text-sm">{{ opt.label }}</label>
-    </div>
+      <span>{{ opt.label }}</span>
+    </label>
   </div>
 
   <div v-else-if="restAs === 'Editor'" class="flex gap-2 pt-1" :class="classNameGroup">
@@ -36,7 +37,7 @@ import InputIcon from "primevue/inputicon";
 import Editor from "primevue/editor";
 
 import * as PrimeVue from 'primevue';
-import {computed, inject, type PropType} from 'vue';
+import {computed, inject, onUnmounted, ref, type PropType} from 'vue';
 
 const props = defineProps({
   rest: Object as PropType<any>,
@@ -46,9 +47,30 @@ const props = defineProps({
 });
 
 const $fcDynamicFormField: any = inject('$fcDynamicFormField', undefined);
+const $fcDynamicForm: any = inject('$fcDynamicForm', undefined);
 
 const name = computed(() => $fcDynamicFormField?.name || "");
 const size = computed(() => props.size)
+
+// Track the current field value reactively to style active radio button wrapper
+const currentValue = ref<any>(undefined);
+let stopWatch: any = null;
+if ($fcDynamicForm && name.value) {
+  try {
+    // initialize and watch this field's value
+    stopWatch = $fcDynamicForm.watchFieldValue(name.value, (val: any) => {
+      currentValue.value = val;
+    });
+  } catch {
+  }
+}
+
+onUnmounted(() => {
+  try {
+    if (typeof stopWatch === 'function') stopWatch();
+  } catch {
+  }
+});
 
 const component = computed(() => {
   const key = props.rest?.as || "InputText";
@@ -59,11 +81,26 @@ const component = computed(() => {
 const iconLeft = props.rest?.iconLeft || null
 const iconRight = props.rest?.iconRight || null
 const isIconVersion = props.rest?.iconLeft || props.rest?.iconRight
+
 const classNameGroup = computed(() => {
   return {
     "flex-col": props.rest?.vertical
   }
 })
+
+const buttonTypeClass = computed(() => {
+  return {
+    [`py-2 px-3 border cursor-pointer ${props.rest.buttonTypeClass||''}`]: props.rest.buttonType || false
+  }
+})
+
+const buttonTypeClassActiveClass = computed(() => (val: any) => {
+  return {
+    "border-primary-500 ring-4 ring-primary-300 bg-primary-400 text-white": props.rest.buttonType && val === currentValue.value,
+    "border-surface-300 ring-0": props.rest.buttonType && val !== currentValue.value
+  }
+})
+
 
 const restAs = computed(() => props.rest?.as)
 const options = computed(() => props.rest?.options || [])
