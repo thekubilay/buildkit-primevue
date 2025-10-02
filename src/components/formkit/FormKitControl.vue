@@ -8,7 +8,7 @@
   </div>
 
   <!-- RadioButton group rendering -->
-  <div v-else-if="restAs === 'RadioButton' && hasOptions" class="flex gap-2 pt-1" :class="classNameGroup">
+  <div v-else-if="restAs === 'RadioButton' && hasOptions" class="flex flex-wrap gap-2 pt-1" :class="classNameGroup">
     <label v-for="(opt, i) in options" :key="i" :for="`${name}-${i}`" class="flex items-center gap-2 duration-200"
            :class="[buttonTypeClass, buttonTypeClassActiveClass(opt.value)]">
       <component :is="PrimeRadioButton" :name="name" :inputId="`${name}-${i}`" :value="opt.value" :size="size"/>
