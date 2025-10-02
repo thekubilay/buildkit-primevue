@@ -90,17 +90,16 @@ const classNameGroup = computed(() => {
 
 const buttonTypeClass = computed(() => {
   return {
-    [`py-2 px-3 border cursor-pointer ${props.rest.buttonTypeClass||''}`]: props.rest.buttonType || false
+    [`py-2 px-3 border cursor-pointer ${props.rest.buttonTypeClass || ''}`]: props.rest.buttonType || false
   }
 })
 
 const buttonTypeClassActiveClass = computed(() => (val: any) => {
   return {
-    "border-primary-500 ring-4 ring-primary-300 bg-primary-400 text-white": props.rest.buttonType && val === currentValue.value,
+    "border-primary-400 ring-3 ring-primary-200 bg-primary-50 text-primary-500": props.rest.buttonType && val === currentValue.value,
     "border-surface-300 ring-0": props.rest.buttonType && val !== currentValue.value
   }
 })
-
 
 const restAs = computed(() => props.rest?.as)
 const options = computed(() => props.rest?.options || [])
