@@ -1,8 +1,6 @@
 <template>
   <div class="w-full h-screen py-14 flex justify-center items-start overflow-y-scroll">
     <div class="w-[500px]">
-      <DatePicker v-model="date" format-date="yy/mm/dd" show-time />
-
       <FormKit v-model="form" v-bind="FormKitArgs" @submit="submit">
         <template #footer>
           <Button type="submit" size="small" label="保存" class="w-[48%] ml-auto" :loading="isLoading" @click="submit"/>
@@ -14,10 +12,9 @@
 
 <script setup lang="ts">
 import Button from "primevue/button";
-import DatePicker from "primevue/datepicker"
 import FormKit from "./components/formkit/FormKit.vue";
 
-import {onMounted, reactive, ref, watch} from "vue";
+import {onMounted, reactive, ref} from "vue";
 
 import {setFields} from "./components/formkit/utils/setFields.ts";
 import {getPayload} from "./components/formkit/utils/getPayload.ts";
