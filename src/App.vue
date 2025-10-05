@@ -38,7 +38,7 @@ onMounted(() => {
     name: "1111234234234",
     email: "example@gmail.com",
     content: "kubilay turgut",
-    birthdate: "2023-10-05T05:23:41.036132Z",
+    birthdate: "2025-10-05T06:13:36.229409Z",
     desired_m2: 70,
   }
 
