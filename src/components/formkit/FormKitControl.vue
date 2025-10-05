@@ -23,7 +23,7 @@
   <!-- icon version component -->
   <IconField v-else-if="isIconVersion">
     <InputIcon v-if="iconLeft" :class="iconLeft"/>
-    <component :is="component" :name="name" v-bind="bindings" :size="size"/>
+    <component :is="component" :name="name" v-bind="bindings" :size="size" :fluid="true"/>
     <InputIcon v-if="iconRight" :class="iconRight"/>
   </IconField>
 
