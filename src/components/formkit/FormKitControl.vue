@@ -20,10 +20,16 @@
     <Editor v-bind="bindings" :size="size"/>
   </div>
 
+  <IconField v-else-if="restAs === 'Zipcode'">
+    <InputText :name="name" v-bind="bindings" :size="size"/>
+    <InputIcon v-if="!isLoading" class="fa-regular fa-search cursor-pointer" @click="setAddress(formApi)"/>
+    <InputIcon v-else class="fa-regular fa-spinner fa-spin"/>
+  </IconField>
+
   <!-- icon version component -->
   <IconField v-else-if="isIconVersion">
     <InputIcon v-if="iconLeft" :class="iconLeft"/>
-    <component :is="component" :name="name" v-bind="bindings" :size="size" :fluid="true"/>
+    <component :is="component" :name="name" v-bind="bindings" :size="size" />
     <InputIcon v-if="iconRight" :class="iconRight"/>
   </IconField>
 
@@ -32,14 +38,17 @@
 </template>
 
 <script setup lang="ts">
+import InputText from "primevue/inputtext"
 import IconField from "primevue/iconfield";
 import InputIcon from "primevue/inputicon";
 import Editor from "primevue/editor";
 
 import * as PrimeVue from 'primevue';
 import {computed, inject, onUnmounted, ref, type PropType} from 'vue';
+import useZipcodeHelpers from "./useZipcodeHelpers.ts";
 
 const props = defineProps({
+  formApi: Object as PropType<any>,
   rest: Object as PropType<any>,
   label: String as PropType<string>,
   inputId: String as PropType<string>,
@@ -49,12 +58,16 @@ const props = defineProps({
 const $fcDynamicFormField: any = inject('$fcDynamicFormField', undefined);
 const $fcDynamicForm: any = inject('$fcDynamicForm', undefined);
 
+const {isLoading, setAddress} = useZipcodeHelpers()
+
 const name = computed(() => $fcDynamicFormField?.name || "");
 const size = computed(() => props.size)
 
 // Track the current field value reactively to style active radio button wrapper
 const currentValue = ref<any>(undefined);
+
 let stopWatch: any = null;
+
 if ($fcDynamicForm && name.value) {
   try {
     // initialize and watch this field's value
