@@ -6,7 +6,7 @@
       <template v-for="({ inputId, label, required, help, colSpan, ...rest }, name) in fields" :key="inputId ?? name">
         <div class="flex flex-start" :style="styleColumnSpan(colSpan)">
           <FormKitField :name="name" :input-id="inputId" :required="required" :label="label" :help="help" :rest="rest" :form-api="$form">
-            <component :is="FormKitControl" :label="label" :input-id="inputId" :rest="rest" :size="size" :form-api="$form"/>
+            <component :is="FormKitControl" :label="label" :input-id="inputId" :rest="rest" :size="size" :form-api="model"/>
           </FormKitField>
         </div>
       </template>
