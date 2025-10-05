@@ -42,7 +42,6 @@ const {fields} = useTestFields()
 
 const isLoading = ref(false)
 
-const date = ref(new Date())
 const form = ref<Record<string, any>>({})
 const FormKitArgs = reactive<FormKitProps>({
   fields: fields,
