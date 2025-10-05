@@ -92,7 +92,6 @@ function castValue(value: unknown, as?: CastComponent): string | boolean | numbe
         );
         const d = new Date(normalized);
         if (!isNaN(d.getTime())) {
-          console.log("22")
           return d;
         }
       }
