@@ -127,8 +127,15 @@ const bindings = computed(() => {
     }
   })
 
+  // Ensure full width by default for most inputs
   if (!["Checkbox", "RadioButton", "CheckboxGroup"].includes(props.rest?.as)) {
     binds["class"] = "w-full"
+  }
+
+  // Special-case Date-like inputs: bind modelValue from current form state so initial Date shows up
+  const as = props.rest?.as;
+  if (as === 'DatePicker' || as === 'Calendar') {
+    binds["modelValue"] = currentValue.value ?? null;
   }
 
   return binds

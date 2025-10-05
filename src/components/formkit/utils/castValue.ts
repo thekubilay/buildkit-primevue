@@ -40,6 +40,11 @@ function castValue(value: unknown, as?: CastComponent): string | boolean | numbe
     return null;
   }
 
+  // Preserve Date instances as-is
+  if (value instanceof Date) {
+    return value;
+  }
+
   const isNumberLike = as ? ['InputNumber', 'Slider'].includes(as) : undefined;
   const isBooleanLike = as ? ['Checkbox', 'ToggleButton', 'InputSwitch'].includes(as) : undefined;
   const isDateLike = as ? ['Calendar', 'DatePicker'].includes(as) : undefined;
@@ -48,7 +53,7 @@ function castValue(value: unknown, as?: CastComponent): string | boolean | numbe
 
   // Special handling for MultiSelect
   if (isMultiSelect) {
-    if (typeof value === null) {
+    if (value == null) {
       return []
     }
 
@@ -73,8 +78,8 @@ function castValue(value: unknown, as?: CastComponent): string | boolean | numbe
     // Boolean casting
     if (isBooleanLike === true || (isBooleanLike === undefined)) {
       const lower = trimmed.toLowerCase();
-      if (['true', 'yes', 'true'].includes(lower)) return true;
-      if (['false', 'no', 'false'].includes(lower)) return false;
+      if (['true', 'yes'].includes(lower)) return true;
+      if (['false', 'no'].includes(lower)) return false;
     }
 
     // Date casting (ISO-8601)
@@ -115,12 +120,12 @@ function castValue(value: unknown, as?: CastComponent): string | boolean | numbe
     return isNaN(value) ? null : value;
   }
 
-  if (typeof value === null) {
+  if (value == null) {
     return "";
   }
 
-  // For other types, try to convert to string
-  return String(value);
+  // For other types, return as-is if safe, otherwise fallback
+  return (value as any);
 }
 
 export default castValue;

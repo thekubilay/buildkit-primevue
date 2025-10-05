@@ -111,6 +111,7 @@ const useTestFields = () => {
       schema: "required",
       colSpan: {mobile: 4, tablet: 2, desktop: 1}, // Responsive
       dateFormat:"yy/mm/dd",
+      updateModelType: "date",
       // showWhen: {field: "name", equals: "article"},
       class: "w-[48%]",
     },
