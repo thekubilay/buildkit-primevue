@@ -42,7 +42,7 @@ const {fields, size = "medium"} = defineProps<FormKitProps>();
 const emit = defineEmits(["submit"])
 const model = defineModel("modelValue")
 
-const {resolver} = useFormKitValidations(fields)
+const resolver = computed(() => useFormKitValidations(fields).resolver)
 
 const body = ref<HTMLElement>(document.body);
 const ww = ref(2600)
