@@ -74,7 +74,8 @@
   "types": "types/index.d.ts",
   "files": [
     "dist",
-    "types"
+    "types",
+    "src/components"
   ],
   "scripts": {
     "dev": "vite --host --port=3000",
