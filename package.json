@@ -75,7 +75,7 @@
   "files": [
     "dist",
     "types",
-    "src"
+    "src/components"
   ],
   "scripts": {
     "dev": "vite --host --port=3000",
