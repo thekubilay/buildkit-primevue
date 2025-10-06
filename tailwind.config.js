@@ -7,7 +7,8 @@ export default {
     "./src/**/*.{vue,js,ts,jsx,tsx,html}",
     "./src/**/**/*.{vue,js,ts,jsx,tsx,html}", // Include nested directories
     // Include PrimeVue components that your library might use
-    "./node_modules/primevue/**/*.{vue,js,ts,jsx,tsx}",
+    // "./node_modules/primevue/**/*.{vue,js,ts,jsx,tsx}",
+    "./node_modules/buildkit-primevue/**/*.{vue,js,mjs}" // Add this
   ],
   theme: {
     extend: {},
