@@ -69,7 +69,7 @@
       "types": "./types/index.d.ts"
     },
     "./styles.css": {
-      "default": "./dist/style.css"
+      "default": "./dist/styles.css"
     }
   },
   "main": "dist/index.cjs",
