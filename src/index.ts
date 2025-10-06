@@ -3,7 +3,7 @@ import type {App, Plugin} from 'vue';
 import {version} from '../package.json';
 
 // Styles (exported and bundled)
-import './styles.css';
+import './components/styles.css';
 
 // Components
 import FormKit from './components/formkit/FormKit.vue';

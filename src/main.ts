@@ -1,5 +1,5 @@
 import {createApp} from 'vue'
-import './styles.css'
+import './components/styles.css'
 import App from './App.vue'
 
 import {BuildKitPrimeVue} from './index.ts'
