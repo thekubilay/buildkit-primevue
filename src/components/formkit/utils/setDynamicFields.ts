@@ -14,7 +14,7 @@ export function setDynamicFields(columns: any[]): any {
     // const showWhen = fieldCfg.showWhen;
 
     // Attach schema from rules for non-checkboxes
-    const rules = fieldCfg?.rules || null;
+    const rules = fieldCfg?.schema || null;
 
     if (fieldCfg?.as !== "Checkbox" && rules) {
       fieldCfg.schema = rules;
