@@ -30,7 +30,7 @@ export default defineConfig({
           vue: 'Vue'
         },
         assetFileNames: (assetInfo) => {
-          if (assetInfo.name === 'style.css') {
+          if (assetInfo.name === 'styles.css') {
             return 'styles.css';
           }
           return assetInfo.name || '';
