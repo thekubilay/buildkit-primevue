@@ -1,28 +1,28 @@
 <template>
   <!-- CheckboxGroup rendering -->
-  <div v-if="restAs === 'CheckboxGroup' && hasOptions" class="flex gap-2 pt-1" :class="classNameGroup">
-    <label v-for="(opt, i) in options" :key="i" :for="`${name}-${i}`" class="flex items-center gap-2">
+  <div v-if="restAs === 'CheckboxGroup' && hasOptions" class="bk-group" :class="classNameGroup">
+    <label v-for="(opt, i) in options" :key="i" :for="`${name}-${i}`" class="bk-group-label">
       <component :is="PrimeCheckbox" :name="name" :inputId="`${name}-${i}`" :value="opt.value" :size="size"/>
-      <span class="text-sm">{{ opt.label }}</span>
+      <span class="bk-text-sm">{{ opt.label }}</span>
     </label>
   </div>
 
   <!-- RadioButton group rendering -->
-  <div v-else-if="restAs === 'RadioButton' && hasOptions" class="flex flex-wrap gap-2 pt-1" :class="classNameGroup">
-    <label v-for="(opt, i) in options" :key="i" :for="`${name}-${i}`" class="flex items-center gap-2 duration-200"
+  <div v-else-if="restAs === 'RadioButton' && hasOptions" class="bk-group bk-group--wrap" :class="classNameGroup">
+    <label v-for="(opt, i) in options" :key="i" :for="`${name}-${i}`" class="bk-radio-label"
            :class="[buttonTypeClass, buttonTypeClassActiveClass(opt.value)]">
       <component :is="PrimeRadioButton" :name="name" :inputId="`${name}-${i}`" :value="opt.value" :size="size"/>
       <span>{{ opt.label }}</span>
     </label>
   </div>
 
-  <div v-else-if="restAs === 'Editor'" class="flex gap-2 pt-1" :class="classNameGroup">
+  <div v-else-if="restAs === 'Editor'" class="bk-group" :class="classNameGroup">
     <Editor v-bind="bindings" :size="size"/>
   </div>
 
   <IconField v-else-if="restAs === 'Zipcode'">
     <InputText :name="name" v-bind="bindings" :size="size"/>
-    <InputIcon v-if="!isLoading" class="fa-regular fa-search cursor-pointer" @click="setAddress(formApi)"/>
+    <InputIcon v-if="!isLoading" class="fa-regular fa-search bk-clickable" @click="setAddress(formApi)"/>
     <InputIcon v-else class="fa-regular fa-spinner fa-spin"/>
   </IconField>
 
@@ -97,20 +97,22 @@ const isIconVersion = props.rest?.iconLeft || props.rest?.iconRight
 
 const classNameGroup = computed(() => {
   return {
-    "flex-col": props.rest?.vertical
+    "bk-flex-col": props.rest?.vertical
   }
 })
 
 const buttonTypeClass = computed(() => {
+  const extra = (props.rest as any)?.buttonTypeClass || '';
   return {
-    [`py-2 px-3 border cursor-pointer ${props.rest.buttonTypeClass || ''}`]: props.rest.buttonType || false
+    'bk-button-option': !!props.rest?.buttonType,
+    [extra]: !!extra
   }
 })
 
 const buttonTypeClassActiveClass = computed(() => (val: any) => {
   return {
-    "border-primary-500 ring-3 ring-primary-200/50 bg-primary-50 text-primary-500": props.rest.buttonType && val === currentValue.value,
-    "border-surface-300 ring-0": props.rest.buttonType && val !== currentValue.value
+    'bk-button-option--active': !!props.rest?.buttonType && val === currentValue.value,
+    'bk-button-option--inactive': !!props.rest?.buttonType && val !== currentValue.value
   }
 })
 
@@ -142,7 +144,7 @@ const bindings = computed(() => {
 
   // Ensure full width by default for most inputs
   if (!["Checkbox", "RadioButton", "CheckboxGroup"].includes(props.rest?.as)) {
-    binds["class"] = "w-full"
+    binds["class"] = "bk-w-full"
   }
 
   // Special-case Date-like inputs: bind modelValue from current form state so initial Date shows up

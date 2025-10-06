@@ -1,12 +1,12 @@
 <template>
-  <FormField :name="String(name)" class="flex flex-col gap-2" :class="classNameWidth" v-show="isVisible" v-slot="{ error }">
-    <div class="flex gap-1" :class="className">
+  <FormField :name="String(name)" class="bk-field" :class="classNameWidth" v-show="isVisible" v-slot="{ error }">
+    <div :class="className">
       <FormKitLabel>{{ label }}</FormKitLabel>
       <slot/>
     </div>
-    <div class="flex flex-col gap-1">
-      <small v-if="help" v-html="help" class="text-xs text-surface-500"></small>
-      <small v-if="formApi[name]?.error" class="text-red-500 text-xs">{{ typeof error === 'string' ? error : (error?.message ?? '') }}</small>
+    <div class="bk-flex-col bk-gap-2">
+      <small v-if="help" v-html="help" class="bk-text-xs bk-text-muted"></small>
+      <small v-if="formApi[name]?.error" class="bk-text-xs bk-text-error">{{ typeof error === 'string' ? error : (error?.message ?? '') }}</small>
     </div>
   </FormField>
 </template>
@@ -82,10 +82,9 @@ const classNameWidth = computed(() => {
 })
 
 const className = computed(() => {
-  if (!rest?.as) return "flex-col"
   return {
-    "items-center flex-row-reverse justify-end gap-3": rest?.as === "Checkbox",
-    "flex-col": rest?.as !== 'Checkbox'
+    "bk-flex bk-gap-2 bk-row-reverse bk-items-center": rest?.as === "Checkbox",
+    "bk-flex bk-flex-col bk-gap-2": rest?.as !== 'Checkbox'
   }
 })
 

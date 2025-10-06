@@ -1,0 +1,106 @@
+/* Buildkit custom styles (no Tailwind) */
+
+/* Form container */
+.bk-form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  row-gap: 0.75rem; /* was gap-y-3 */
+  column-gap: 1.25rem; /* was gap-x-5 */
+}
+
+/* Each field wrapper */
+.bk-form-field-wrapper {
+  display: flex;
+  align-items: flex-start; /* was flex-start */
+}
+
+/* Field component root */
+.bk-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem; /* was gap-2 */
+}
+
+/* Footer area */
+.bk-form-footer {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+}
+
+/* Rows and gaps */
+.bk-row { display: flex; }
+.bk-gap-1 { gap: 0.25rem; }
+.bk-gap-2 { gap: 0.5rem; }
+.bk-gap-3 { gap: 0.75rem; }
+
+/* Utility: full width */
+.bk-w-full { width: 100%; }
+
+/* Direction/Alignment utilities */
+.bk-flex { display: flex; }
+.bk-flex-col { flex-direction: column; }
+.bk-row-reverse { flex-direction: row-reverse; }
+.bk-items-center { align-items: center; }
+.bk-justify-end { justify-content: flex-end; }
+
+/* Simple groups */
+.bk-group {
+  display: flex;
+  gap: 0.5rem; /* was gap-2 */
+  padding-top: 0.25rem; /* was pt-1 */
+}
+.bk-group--wrap { flex-wrap: wrap; }
+
+/* Labels inside option groups (checkbox/radio) */
+.bk-group-label,
+.bk-radio-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Transition helper */
+.bk-radio-label { transition: all 200ms ease; }
+
+/* Text sizes */
+.bk-text-sm { font-size: 0.875rem; line-height: 1.25rem; }
+.bk-text-xs { font-size: 0.75rem; line-height: 1rem; }
+.bk-text-muted { color: var(--p-text-muted-color, #6b7280); }
+.bk-text-error { color: var(--p-danger-600, #ef4444); }
+
+/* Label styling */
+.bk-label {
+  padding-left: 0.25rem; /* pl-1 */
+  display: flex;
+  font-size: 0.75rem; /* text-xs */
+  line-height: 1rem;
+  font-weight: 500; /* font-medium */
+  color: var(--p-text-color, #374151);
+  gap: 0.25rem;
+}
+
+/* Clickable icon */
+.bk-clickable { cursor: pointer; }
+
+/* Button-like options for Radio buttonType variant */
+.bk-button-option {
+  padding: 0.5rem 0.75rem; /* py-2 px-3 */
+  border: 1px solid var(--p-content-border-color, #d1d5db);
+  border-radius: var(--p-content-border-radius, 6px);
+  cursor: pointer;
+  user-select: none;
+}
+
+.bk-button-option--active {
+  border-color: var(--p-primary-color, #3b82f6);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--p-primary-color, #3b82f6) 20%, transparent);
+  background: color-mix(in srgb, var(--p-primary-color, #3b82f6) 5%, white);
+  color: var(--p-primary-color, #3b82f6);
+}
+
+.bk-button-option--inactive {
+  border-color: var(--p-content-border-color, #d1d5db);
+  box-shadow: none;
+}

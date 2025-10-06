@@ -1,11 +1,8 @@
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
-import tailwindcss from '@tailwindcss/vite'
-
 export default defineConfig({
   plugins: [
     vue(),
-    tailwindcss()
   ],
   build: {
     lib: {
@@ -32,11 +29,6 @@ export default defineConfig({
           vue: 'Vue'
         }
       }
-    },
-    cssCodeSplit: false,
-    // Completely disable CSS output
-    cssMinify: false,
-    // Alternative: set this to prevent asset emission
-    assetsInlineLimit: 0
+    }
   }
 })

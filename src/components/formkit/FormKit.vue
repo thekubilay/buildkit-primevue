@@ -1,10 +1,10 @@
 <template>
-  <Form ref="formRef" :key="formKey" v-slot="$form" :initial-values="initialValues" :resolver="resolver" @submit="submit" class="flex flex-wrap items-start gap-y-3 gap-x-5">
+  <Form ref="formRef" :key="formKey" v-slot="$form" :initial-values="initialValues" :resolver="resolver" @submit="submit" class="bk-form">
     <slot name="start"></slot>
 
     <slot v-bind="$form">
       <template v-for="({ inputId, label, required, help, colSpan, ...rest }, name) in fields" :key="inputId ?? name">
-        <div class="flex flex-start" :style="styleColumnSpan(colSpan)">
+        <div class="bk-form-field-wrapper" :style="styleColumnSpan(colSpan)">
           <FormKitField :name="name" :input-id="inputId" :required="required" :label="label" :help="help" :rest="rest" :form-api="$form">
             <component :is="FormKitControl" :label="label" :input-id="inputId" :rest="rest" :size="size" :form-api="model"/>
           </FormKitField>
@@ -14,7 +14,7 @@
 
     <slot name="end"></slot>
 
-    <div class="w-full flex justify-between">
+    <div class="bk-form-footer">
       <slot name="footer"></slot>
     </div>
   </Form>

@@ -1,8 +1,7 @@
 import {createApp} from 'vue'
-import './tailwind.css'
+import './styles.css'
 import App from './App.vue'
 
-// Import individual components (better for tree-shaking)
 import {BuildKitPrimeVue} from './index.ts'
 
 import PrimeVue from 'primevue/config'
@@ -13,10 +12,6 @@ createApp(App)
     ripple: true,
     theme: {
       preset: Aura,
-      cssLayer: {
-        name: "primevue",
-        order: "theme, base, primevue",
-      },
     },
   })
   .use(BuildKitPrimeVue)

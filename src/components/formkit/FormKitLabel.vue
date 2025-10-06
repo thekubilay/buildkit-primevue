@@ -1,7 +1,7 @@
 <template>
-  <label :for="forId" class="pl-1 flex text-xs font-medium text-surface-600">
+  <label :for="forId" class="bk-label">
     <slot/>
-    <span v-if="required" class="text-red-500">*</span>
+    <span v-if="required" class="bk-text-error">*</span>
   </label>
 </template>
 
