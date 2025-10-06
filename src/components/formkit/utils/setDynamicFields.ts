@@ -14,11 +14,11 @@ export function setDynamicFields(columns: any[]): any {
     // const showWhen = fieldCfg.showWhen;
 
     // Attach schema from rules for non-checkboxes
-    const rules = fieldCfg?.schema || null;
-
-    if (fieldCfg?.as !== "Checkbox" && rules) {
-      fieldCfg.schema = rules;
-    }
+    // const rules = fieldCfg?.schema || null;
+    //
+    // if (fieldCfg?.as !== "Checkbox" && rules) {
+    //   fieldCfg.schema = rules;
+    // }
 
     // Ensure we don't prefill values for fields that are hidden initially based on static equals/includes
     // Initial visibility cannot observe runtime values here, so only clear eager defaultValue if hideWhen has static equals/includes vs known falsy triggers.
