@@ -53,6 +53,11 @@ function castValue(value: unknown, as?: CastComponent): string | boolean | numbe
 
   // Special handling for MultiSelect
   if (isMultiSelect) {
+
+    if (value === "") {
+      return []
+    }
+
     if (value == null) {
       return []
     }

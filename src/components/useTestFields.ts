@@ -2,33 +2,43 @@ import {reactive} from "@vue/runtime-core";
 
 const useTestFields = () => {
   const fields = reactive<any>({
-    zipcode: {
-      inputId: "zipcode",
-      as: "Zipcode",
-      label: "郵便番号",
-      defaultValue: '',
-      placeholder: "512356",
-      class: "w-[118px]",
-      schema: "required|number", // Required, numbers only, 10-11 digits
-      colSpan: {mobile: 4, tablet: 2, desktop: 1}, // Responsive
-    },
-    prefecture: {
-      inputId: "prefecture",
-      label: "都道府県",
-      defaultValue: '',
-      placeholder: "選択してください",
-      schema: "required", // Required, numbers only, 10-11 digits
-      colSpan: {mobile: 4, tablet: 2, desktop: 1}, // Responsive
-    },
-    address: {
-      inputId: "address",
-      label: "住所",
-      defaultValue: '',
-      placeholder: "入力してください",
-      schema: "required", // Required, numbers only, 10-11 digits
-      colSpan: {mobile: 4, tablet: 2, desktop: 1}, // Responsive
+    projects: {
+      label: "興味のある分野",
+      as: "MultiSelect",
+      defaultValue: "",
+      schema: "required", // At least 1, max 3 selections
+      colSpan: {mobile: 1, tablet: 2, desktop: 1}, // Responsive
+      optionLabel: "name",
+      optionValue: "id",
+      options: ["1", "2", "3", "4",],
     },
 
+    // zipcode: {
+    //   inputId: "zipcode",
+    //   as: "Zipcode",
+    //   label: "郵便番号",
+    //   defaultValue: '',
+    //   placeholder: "512356",
+    //   class: "w-[118px]",
+    //   schema: "required|number", // Required, numbers only, 10-11 digits
+    //   colSpan: {mobile: 4, tablet: 2, desktop: 1}, // Responsive
+    // },
+    // prefecture: {
+    //   inputId: "prefecture",
+    //   label: "都道府県",
+    //   defaultValue: '',
+    //   placeholder: "選択してください",
+    //   schema: "required", // Required, numbers only, 10-11 digits
+    //   colSpan: {mobile: 4, tablet: 2, desktop: 1}, // Responsive
+    // },
+    // address: {
+    //   inputId: "address",
+    //   label: "住所",
+    //   defaultValue: '',
+    //   placeholder: "入力してください",
+    //   schema: "required", // Required, numbers only, 10-11 digits
+    //   colSpan: {mobile: 4, tablet: 2, desktop: 1}, // Responsive
+    // },
     gender: {
       label: "性別",
       as: "RadioButton",
@@ -44,16 +54,6 @@ const useTestFields = () => {
         {label: "女性", value: "female"},
         {label: "その他", value: "other"}
       ]
-    },
-    projects: {
-      label: "興味のある分野",
-      as: "MultiSelect",
-      defaultValue: [],
-      schema: "required", // At least 1, max 3 selections
-      colSpan: {mobile: 1, tablet: 2, desktop: 1}, // Responsive
-      optionLabel: "name",
-      optionValue: "id",
-      options: [1, 2, 3, 4, 5, 6],
     },
     desired_m2: {
       inputId: "desired_m2_id",

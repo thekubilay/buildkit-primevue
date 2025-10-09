@@ -17,6 +17,7 @@
 
 /* Field component root */
 .bk-field {
+  width: 100%;
   display: flex;
   flex-direction: column;
   gap: 0.5rem; /* was gap-2 */
