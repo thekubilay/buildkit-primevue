@@ -5,12 +5,12 @@ const useTestFields = () => {
     projects: {
       label: "興味のある分野",
       as: "MultiSelect",
-      defaultValue: "",
+      defaultValue: [],
       schema: "required", // At least 1, max 3 selections
       colSpan: {mobile: 1, tablet: 2, desktop: 1}, // Responsive
-      optionLabel: "name",
-      optionValue: "id",
-      options: ["1", "2", "3", "4",],
+      optionLabel: "label",
+      optionValue: "value",
+      options: [{label:"大阪", value:"大阪"}],
     },
 
     // zipcode: {

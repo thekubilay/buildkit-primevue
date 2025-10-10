@@ -368,7 +368,12 @@ const useFormKitValidations = (fields?: FormKitProps['fields']) => {
           fieldSchema = dateCoerce.optional().nullable();
         }
       } else if (field.type === 'array' || field.as === 'MultiSelect' || field.as === 'CheckboxGroup' || Array.isArray(field.defaultValue)) {
-        fieldSchema = z.array(z.any());
+        // For array-like fields (e.g., MultiSelect), allow null/undefined when not required
+        if (isRequired) {
+          fieldSchema = z.array(z.any());
+        } else {
+          fieldSchema = z.array(z.any()).optional().nullable();
+        }
       } else if (
         field.as === 'Select' ||
         field.as === 'RadioButton' ||

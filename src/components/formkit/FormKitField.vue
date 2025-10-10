@@ -4,7 +4,7 @@
       <FormKitLabel>{{ label }}</FormKitLabel>
       <slot/>
     </div>
-    <div class="bk-flex-col bk-gap-2">
+    <div class="bk-flex bk-flex-col bk-gap-2">
       <small v-if="help" v-html="help" class="bk-text-xs bk-text-muted"></small>
       <small v-if="formApi[name]?.error" class="bk-text-xs bk-text-error">{{ typeof error === 'string' ? error : (error?.message ?? '') }}</small>
     </div>
