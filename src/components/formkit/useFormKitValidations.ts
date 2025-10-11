@@ -1,6 +1,7 @@
 import {zodResolver} from "@primevue/forms/resolvers/zod";
 import {z} from "zod";
 import type {FormKitProps} from "./types/FormKitProps.ts";
+import {equals, includesMatch} from "./utils/visibility.ts";
 
 const useFormKitValidations = (fields?: FormKitProps['fields']) => {
 
@@ -313,46 +314,18 @@ const useFormKitValidations = (fields?: FormKitProps['fields']) => {
     }
   };
 
-  const isFieldVisibleByConfig = (_: string, cfg: any, values: Record<string, any>): boolean => {
-    const showWhen = cfg?.showWhen;
-    const hideWhen = cfg?.hideWhen;
-
-    const equals = (a: any, b: any) => a === b;
-    const includesMatch = (val: any, includes: any | any[]) => {
-      if (Array.isArray(includes)) return includes.includes(val);
-      if (Array.isArray(val)) return val.includes(includes);
-      return val === includes;
-    };
-
-    let visible = true;
-    if (showWhen?.field) {
-      const left = values?.[showWhen.field];
-      visible = showWhen.includes !== undefined ? includesMatch(left, showWhen.includes) : equals(left, showWhen.equals);
-    }
-    if (hideWhen?.field) {
-      const left = values?.[hideWhen.field];
-      let shouldHide = false;
-      shouldHide = hideWhen.includes !== undefined ? includesMatch(left, hideWhen.includes) : equals(left, hideWhen.equals);
-      if (shouldHide) visible = false;
-    }
-    return visible;
-  };
-
-  const createDynamicSchema = (fields: FormKitProps['fields'], values?: Record<string, any>) => {
+  const createDynamicSchema = (fields: FormKitProps['fields']) => {
     const schemaObject: { [key: string]: z.ZodType } = {};
 
     Object.keys(fields).forEach(fieldName => {
-      const field = (fields as any)[fieldName];
+      const field = fields[fieldName];
       let fieldSchema: z.ZodType = z.string();
 
       // Parse schema string to determine if field is required
-      const rules = field.schema ? parseSchemaString(field.schema) : [];
-      let isRequired = !!field.required || rules.some(({rule}) => rule === 'required');
-
-      // If field is hidden by showWhen/hideWhen based on current values, treat as not required
-      const visible = isFieldVisibleByConfig(fieldName, field, values || {});
-      if (!visible) {
-        isRequired = false;
+      let isRequired = field.required || false;
+      if (field.schema) {
+        const rules = parseSchemaString(field.schema);
+        isRequired = isRequired || rules.some(({rule}) => rule === 'required');
       }
 
       // Start with a base type based on field configuration
@@ -376,11 +349,7 @@ const useFormKitValidations = (fields?: FormKitProps['fields']) => {
           fieldSchema = numberCoerce.optional().nullable();
         }
       } else if (field.as === 'Checkbox') {
-        if (isRequired) {
-          fieldSchema = z.boolean();
-        } else {
-          fieldSchema = z.boolean().optional().nullable();
-        }
+        fieldSchema = z.boolean();
       } else if (field.as === 'DatePicker') {
         const dateCoerce = z.preprocess((v: any) => {
           if (v === '' || v === undefined) return undefined;
@@ -425,9 +394,9 @@ const useFormKitValidations = (fields?: FormKitProps['fields']) => {
 
       // Parse schema string if it exists - only apply rules for required fields or specific validations
       if (field.schema && isRequired) {
-        const rules2 = parseSchemaString(field.schema);
+        const rules = parseSchemaString(field.schema);
 
-        rules2.forEach(({rule, param}) => {
+        rules.forEach(({rule, param}) => {
           if (customRuleSchema[rule]) {
             // Handle different field types using proper type checking
             if (isZodString(fieldSchema)) {
@@ -501,25 +470,67 @@ const useFormKitValidations = (fields?: FormKitProps['fields']) => {
     return z.object(schemaObject);
   };
 
-  // Wrap resolver to temporarily set global Zod errorMap and build schema dynamically per current values
-  const resolver = async (...args: any[]) => {
+  // helper to compute visibility from field config and current values
+  const isFieldVisibleByConfig = (cfg: any, values: Record<string, any>): boolean => {
+    const showWhen = cfg?.showWhen;
+    const hideWhen = cfg?.hideWhen;
+
+    let visible = true;
+    if (showWhen?.field) {
+      const left = values?.[showWhen.field];
+      if (showWhen.includes !== undefined) visible = includesMatch(left, showWhen.includes);
+      else visible = equals(left, showWhen.equals);
+    }
+    if (hideWhen?.field) {
+      const left = values?.[hideWhen.field];
+      let shouldHide = false;
+      if (hideWhen.includes !== undefined) shouldHide = includesMatch(left, hideWhen.includes);
+      else shouldHide = equals(left, hideWhen.equals);
+      if (shouldHide) visible = false;
+    }
+    return visible;
+  };
+
+  const removeRequiredFromSchemaString = (schema?: string): string | undefined => {
+    if (!schema) return schema;
+    // split by | and remove tokens that are exactly 'required' or 'required()'
+    const parts = schema.split('|').map(s => s.trim()).filter(Boolean);
+    const filtered = parts.filter(p => !/^required\s*\(?\s*\)?$/.test(p));
+    return filtered.join(' | ');
+  };
+
+  // Wrap resolver to temporarily set global Zod errorMap and build visibility-aware schema
+  const resolver = async ({ values, name }: any) => {
     const getErrorMap = (z as any).getErrorMap as (() => any) | undefined;
     const setErrorMap = (z as any).setErrorMap as ((map: any) => void) | undefined;
 
     const prevMap = getErrorMap ? getErrorMap() : undefined;
     const jpMap = createCustomErrorMap();
 
-    // Try to extract values from first argument
-    const maybeValues = args?.[0] ?? {};
-    const values: Record<string, any> = typeof maybeValues === 'object' && maybeValues !== null ? maybeValues : {};
-
-    // Build a fresh resolver using a schema that considers current visibility
-    const dynamicSchema = fields ? createDynamicSchema(fields, values) : z.object({});
-    const dynamicResolver = zodResolver(dynamicSchema, { errorMap: jpMap });
-
     if (setErrorMap) setErrorMap(jpMap);
     try {
-      return await (dynamicResolver as any)(...args);
+      // If no fields provided, validate against empty object
+      if (!fields) {
+        const dynamic = zodResolver(z.object({}), { errorMap: createCustomErrorMap() });
+        return await (dynamic as any)({ values, name });
+      }
+
+      // Build a fields copy where hidden fields are not required and do not include required in schema
+      const adjustedFields: any = {};
+      Object.entries(fields as any).forEach(([fname, cfg]: any) => {
+        const visible = isFieldVisibleByConfig(cfg, values || {});
+        const copy: any = { ...cfg };
+        if (!visible) {
+          copy.required = false;
+          copy.schema = removeRequiredFromSchemaString(copy.schema);
+        }
+        adjustedFields[fname] = copy;
+      });
+
+      // Create a fresh schema using adjusted fields and validate
+      const dynamicSchema = createDynamicSchema(adjustedFields);
+      const dynamicResolver = zodResolver(dynamicSchema, { errorMap: createCustomErrorMap() });
+      return await (dynamicResolver as any)({ values, name });
     } finally {
       if (setErrorMap) setErrorMap(prevMap);
     }
