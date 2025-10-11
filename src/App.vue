@@ -51,7 +51,7 @@ const FormKitArgs = reactive<FormKitProps>({
 const submit = async ({valid, states}: any): Promise<void> => {
   console.log("isvalid:", valid)
   const payload = getPayload(states, fields)
-  cosnole.log(payload)
+  console.log(payload)
 
 
 }
