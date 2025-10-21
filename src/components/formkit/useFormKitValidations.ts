@@ -345,8 +345,25 @@ const useFormKitValidations = (fields?: FormKitProps['fields']) => {
         if (isRequired) {
           fieldSchema = numberCoerce;
         } else {
-          // For non-required number fields, allow null/undefined
-          fieldSchema = numberCoerce.optional().nullable();
+          // For non-required number fields, allow empty string, null, or undefined without error.
+          // Important: Use preprocess with a union so that optionality is checked AFTER preprocessing,
+          // avoiding the case where '' becomes undefined and still triggers z.number().
+          fieldSchema = z.preprocess(
+            (v: any) => {
+              if (v === '' || v === undefined) return undefined;
+              if (v === null) return null;
+              if (typeof v === 'string') {
+                const n = Number(v);
+                return Number.isFinite(n) ? n : v;
+              }
+              return v;
+            },
+            z.union([
+              z.number({ message: "数値を入力してください" }),
+              z.undefined(),
+              z.null(),
+            ])
+          );
         }
       } else if (field.as === 'Checkbox') {
         fieldSchema = z.boolean();

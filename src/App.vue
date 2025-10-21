@@ -26,6 +26,7 @@ import useTestFields from "./components/useTestFields.ts";
 
 onMounted(() => {
   const data = {
+    tags: 1,
     // projects: ["大阪"],
     name: "asdasd",
     email: "example@gmail.com",

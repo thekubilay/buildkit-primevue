@@ -2,6 +2,36 @@ import {reactive} from "@vue/runtime-core";
 
 const useTestFields = () => {
   const fields = reactive<any>({
+    alcove_area: {
+      "as": "InputNumber",
+      "id": 216,
+      "class": "",
+      "label": "アルコーブ面積",
+      "colSpan": {
+        "mobile": 1,
+        "tablet": 1,
+        "desktop": 1
+      },
+      "inputId": "alcove_area_id",
+      "required": false,
+      "defaultValue": null,
+      "minFractionDigits": 2
+    },
+    tags: {
+      inputId: "tags_id",
+      label: "タグ",
+      as: "Select",
+      optionLabel: "label",
+      optionValue: "value",
+      defaultValue: "",
+      colSpan: {mobile: 4, tablet: 2, desktop: 1}, // Responsive
+      options: [
+        {label: "テクノロジー", value: 1},
+        {label: "デザイン", value: 2},
+      ],
+      schema: "required", // At least 1, max 5 selections
+      class: "w-full",
+    },
     projects: {
       label: "興味のある分野",
       as: "MultiSelect",
