@@ -2,6 +2,16 @@ import {reactive} from "@vue/runtime-core";
 
 const useTestFields = () => {
   const fields = reactive<any>({
+    name: {
+      inputId: "name_id",
+      label: "氏名",
+      defaultValue: 'article',
+      placeholder: "氏名を入力",
+      schema: "required|max:12", // Required, max 12 chars, hiragana only
+      colSpan: {mobile: 1, tablet: 2, desktop: 2}, // Responsive
+      class: "w-full",
+      help: "asdasdasda"
+    },
     terms: {
       label: "利用規約に同意する",
       as: "Checkbox",
@@ -127,16 +137,6 @@ const useTestFields = () => {
     //   ],
     //   colSpan: {desktop: 3, mobile: 1, tablet: 1},
     // },
-    name: {
-      inputId: "name_id",
-      label: "氏名",
-      defaultValue: 'article',
-      placeholder: "氏名を入力",
-      schema: "required|max:12", // Required, max 12 chars, hiragana only
-      colSpan: {mobile: 1, tablet: 2, desktop: 2}, // Responsive
-      class: "w-full",
-      help: "asdasdasda"
-    },
     // email: {
     //   inputId: "email_id",
     //   label: "メールアドレス",

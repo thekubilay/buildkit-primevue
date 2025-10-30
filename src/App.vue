@@ -28,7 +28,7 @@ onMounted(() => {
   const data = {
     tags: 1,
     // projects: ["大阪"],
-    name: "asdasd",
+    name: 300,
     email: "example@gmail.com",
     content: "kubilay turgut",
     birthdate: "2025-10-05T06:13:36.229409Z",

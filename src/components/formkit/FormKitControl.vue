@@ -126,7 +126,13 @@ const PrimeRadioButton = (PrimeVue as any).RadioButton
 const bindings = computed(() => {
   const binds: any = {}
 
+  const disallowedProps = new Set(["defaultValue", "schema", "showWhen", "hideWhen", "colSpan"]);
+
   Object.keys(props.rest || {}).forEach(k => {
+    if (disallowedProps.has(k)) {
+      // skip non-input props that can conflict with controlled value handling
+      return;
+    }
     if (["class", "className"].includes(k)) {
       binds["class"] = props.rest[k];
     } else {
