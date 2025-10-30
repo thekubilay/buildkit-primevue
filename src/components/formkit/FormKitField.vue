@@ -83,7 +83,7 @@ const classNameWidth = computed(() => {
 
 const className = computed(() => {
   return {
-    "bk-flex bk-gap-2 bk-row-reverse bk-items-center": rest?.as === "Checkbox",
+    "bk-flex bk-gap-2 bk-row-reverse bk-items-center bk-justify-end": rest?.as === "Checkbox",
     "bk-flex bk-flex-col bk-gap-2": rest?.as !== 'Checkbox'
   }
 })

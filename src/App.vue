@@ -1,6 +1,6 @@
 <template>
   <div class="w-full h-screen py-14 flex justify-center items-start overflow-y-scroll">
-    <div class="w-[500px]">
+    <div style="width: 500px">
       <FormKit v-model="form" v-bind="FormKitArgs" @submit="submit">
         <template #footer>
           <Button type="submit" size="small" label="保存" class="w-[48%] ml-auto" :loading="isLoading" @click="submit"/>

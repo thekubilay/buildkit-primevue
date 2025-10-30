@@ -2,6 +2,16 @@ import {reactive} from "@vue/runtime-core";
 
 const useTestFields = () => {
   const fields = reactive<any>({
+    terms: {
+      label: "利用規約に同意する",
+      as: "Checkbox",
+      inputId: "terms_id",
+      defaultValue: true,
+      colSpan: {mobile: 1, tablet: 1, desktop: 1}, // Responsive
+      binary: true,
+      schema: "required", // Must be checked to submit
+      class: "w-full"
+    },
     alcove_area: {
       "as": "InputNumber",
       "id": 216,
@@ -17,21 +27,21 @@ const useTestFields = () => {
       "defaultValue": null,
       "minFractionDigits": 2
     },
-    tags: {
-      inputId: "tags_id",
-      label: "タグ",
-      as: "Select",
-      optionLabel: "label",
-      optionValue: "value",
-      defaultValue: "",
-      colSpan: {mobile: 4, tablet: 2, desktop: 1}, // Responsive
-      options: [
-        {label: "テクノロジー", value: 1},
-        {label: "デザイン", value: 2},
-      ],
-      schema: "required", // At least 1, max 5 selections
-      class: "w-full",
-    },
+    // tags: {
+    //   inputId: "tags_id",
+    //   label: "タグ",
+    //   as: "Select",
+    //   optionLabel: "label",
+    //   optionValue: "value",
+    //   defaultValue: "",
+    //   colSpan: {mobile: 4, tablet: 2, desktop: 1}, // Responsive
+    //   options: [
+    //     {label: "テクノロジー", value: 1},
+    //     {label: "デザイン", value: 2},
+    //   ],
+    //   schema: "required", // At least 1, max 5 selections
+    //   class: "w-full",
+    // },
     projects: {
       label: "興味のある分野",
       as: "MultiSelect",
@@ -70,22 +80,22 @@ const useTestFields = () => {
     //   schema: "required", // Required, numbers only, 10-11 digits
     //   colSpan: {mobile: 4, tablet: 2, desktop: 1}, // Responsive
     // },
-    gender: {
-      label: "性別",
-      as: "RadioButton",
-      defaultValue: '',
-      schema: "required",
-      colSpan: {mobile: 1, tablet: 1, desktop: 1}, // Responsive
-      class: "w-full",
-      buttonType: true,
-      buttonTypeClass: "w-[calc(25%-0.375rem)] rounded-md text-xs",
-      // vertical: true,
-      options: [
-        {label: "男性", value: "male"},
-        {label: "女性", value: "female"},
-        {label: "その他", value: "other"}
-      ]
-    },
+    // gender: {
+    //   label: "性別",
+    //   as: "RadioButton",
+    //   defaultValue: '',
+    //   schema: "required",
+    //   colSpan: {mobile: 1, tablet: 1, desktop: 1}, // Responsive
+    //   class: "w-full",
+    //   buttonType: true,
+    //   buttonTypeClass: "w-[calc(25%-0.375rem)] rounded-md text-xs",
+    //   // vertical: true,
+    //   options: [
+    //     {label: "男性", value: "male"},
+    //     {label: "女性", value: "female"},
+    //     {label: "その他", value: "other"}
+    //   ]
+    // },
     // desired_m2: {
     //   inputId: "desired_m2_id",
     //   label: "ご希望の間取り",
@@ -208,16 +218,6 @@ const useTestFields = () => {
     //   colSpan: {mobile: 1, tablet: 1, desktop: 1}, // Responsive
     //   binary: true,
     //   defaultValue: false,
-    //   class: "w-full"
-    // },
-    // terms: {
-    //   label: "利用規約に同意する",
-    //   as: "Checkbox",
-    //   inputId: "terms_id",
-    //   defaultValue: true,
-    //   colSpan: {mobile: 1, tablet: 1, desktop: 1}, // Responsive
-    //   binary: true,
-    //   schema: "required", // Must be checked to submit
     //   class: "w-full"
     // },
     // interests: {
