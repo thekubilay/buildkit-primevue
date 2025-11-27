@@ -5,12 +5,13 @@ const useTestFields = () => {
     name: {
       inputId: "name_id",
       label: "氏名",
-      defaultValue: 'article',
+      defaultValue: '',
       placeholder: "氏名を入力",
       schema: "required|max:12", // Required, max 12 chars, hiragana only
       colSpan: {mobile: 1, tablet: 2, desktop: 2}, // Responsive
       class: "w-full",
-      help: "asdasdasda"
+      help: "asdasdasda",
+      showWhen: {field: "terms", equals: true}
     },
     terms: {
       label: "利用規約に同意する",
@@ -19,7 +20,6 @@ const useTestFields = () => {
       defaultValue: true,
       colSpan: {mobile: 1, tablet: 1, desktop: 1}, // Responsive
       binary: true,
-      schema: "required", // Must be checked to submit
       class: "w-full"
     },
     alcove_area: {
@@ -52,17 +52,17 @@ const useTestFields = () => {
     //   schema: "required", // At least 1, max 5 selections
     //   class: "w-full",
     // },
-    projects: {
-      label: "興味のある分野",
-      as: "MultiSelect",
-      defaultValue: [],
-      schema: "required", // At least 1, max 3 selections
-      colSpan: {mobile: 1, tablet: 2, desktop: 1}, // Responsive
-      optionLabel: "label",
-      optionValue: "value",
-      options: [{label:"大阪", value:"大阪"}],
-      showWhen: {field: "gender", equals: "male"}
-    },
+    // projects: {
+    //   label: "興味のある分野",
+    //   as: "MultiSelect",
+    //   defaultValue: [],
+    //   schema: "required", // At least 1, max 3 selections
+    //   colSpan: {mobile: 1, tablet: 2, desktop: 1}, // Responsive
+    //   optionLabel: "label",
+    //   optionValue: "value",
+    //   options: [{label:"大阪", value:"大阪"}],
+    //   showWhen: {field: "gender", equals: "male"}
+    // },
 
     // zipcode: {
     //   inputId: "zipcode",

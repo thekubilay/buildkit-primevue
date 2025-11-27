@@ -86,6 +86,33 @@ provide('$fcDynamicForm', {
       {immediate: true}
     );
   },
+  setFieldValue: (fieldName: string, value: any) => {
+    // try using API method first; fall back to directly mutating state
+    const api: any = formRef.value || model.value
+    try {
+      if (api?.setFieldValue) {
+        api.setFieldValue(fieldName, value);
+      } else if (api?.setValue) {
+        // Some implementations expose setValue(name, value)
+        api.setValue(fieldName, value);
+      } else if (api?.states?.[fieldName]) {
+        api.states[fieldName].value = value;
+      }
+    } catch {
+      // no-op
+    }
+  },
+  clearFieldValue: (fieldName: string) => {
+    // Clearing means resetting to null to avoid persisting previous input when hidden
+    const api: any = formRef.value || model.value
+    try {
+      if (api?.setFieldValue) api.setFieldValue(fieldName, null);
+      else if (api?.setValue) api.setValue(fieldName, null);
+      else if (api?.states?.[fieldName]) api.states[fieldName].value = null;
+    } catch {
+      // no-op
+    }
+  }
 });
 
 

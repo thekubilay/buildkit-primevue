@@ -26,13 +26,13 @@ import useTestFields from "./components/useTestFields.ts";
 
 onMounted(() => {
   const data = {
-    tags: 1,
+    // tags: 1,
     // projects: ["大阪"],
-    name: 300,
-    email: "example@gmail.com",
-    content: "kubilay turgut",
-    birthdate: "2025-10-05T06:13:36.229409Z",
-    desired_m2: 70,
+    // name: 300,
+    // email: "example@gmail.com",
+    // content: "kubilay turgut",
+    // birthdate: "2025-10-05T06:13:36.229409Z",
+    // desired_m2: 70,
   }
 
   setFields(data, fields)

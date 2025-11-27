@@ -15,7 +15,7 @@
 import FormKitLabel from './FormKitLabel.vue';
 import FormField from '@primevue/forms/formfield';
 
-import {computed, onMounted, onUnmounted, provide, inject, ref} from 'vue';
+import {computed, onMounted, onUnmounted, provide, inject, ref, watch} from 'vue';
 import {equals, includesMatch} from "./utils/visibility.ts";
 
 onMounted(() => {
@@ -126,4 +126,15 @@ const isVisible = computed<boolean>(() => {
 
   return visible;
 });
+
+// Clear the field's value whenever it becomes hidden to avoid showing stale input later
+watch(isVisible, (visible) => {
+  try {
+    if (!visible) {
+      $fcDynamicForm?.clearFieldValue?.(String(name));
+    }
+  } catch {
+    // no-op
+  }
+}, { immediate: true });
 </script>
