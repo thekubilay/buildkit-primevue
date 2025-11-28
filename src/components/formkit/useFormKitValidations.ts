@@ -166,10 +166,17 @@ const useFormKitValidations = (fields?: FormKitProps['fields']) => {
       );
     }
 
-    // Extract valid values from options
-    const validValues = options.map((opt: any) =>
-      (opt && typeof opt === 'object' && 'value' in opt) ? opt.value : opt
-    ).filter((v: any) => v !== undefined && v !== null);
+    // Extract valid values from options respecting field.optionValue (fallback to `value`)
+    const valueKey = field?.optionValue ?? 'value';
+    const validValues = options
+      .map((opt: any) => {
+        if (opt && typeof opt === 'object') {
+          const val = opt[valueKey] ?? opt.value;
+          return val !== undefined ? val : opt;
+        }
+        return opt;
+      })
+      .filter((v: any) => v !== undefined && v !== null);
 
     if (validValues.length === 0) {
       return z.any().refine(

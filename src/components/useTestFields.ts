@@ -1,27 +1,40 @@
 import {reactive} from "@vue/runtime-core";
+import countries from "../countries.ts";
 
 const useTestFields = () => {
   const fields = reactive<any>({
-    name: {
-      inputId: "name_id",
-      label: "氏名",
+    country: {
+      inputId: "buyer1_country",
+      label: "国名",
+      as: "Select",
       defaultValue: '',
-      placeholder: "氏名を入力",
-      schema: "required|max:12", // Required, max 12 chars, hiragana only
-      colSpan: {mobile: 1, tablet: 2, desktop: 2}, // Responsive
-      class: "w-full",
-      help: "asdasdasda",
-      showWhen: {field: "terms", equals: true}
-    },
-    terms: {
-      label: "利用規約に同意する",
-      as: "Checkbox",
-      inputId: "terms_id",
-      defaultValue: true,
+      placeholder: "選択してください",
+      schema: "required",
+      options: countries,
+      optionLabel: "name",
+      optionValue: "code",
       colSpan: {mobile: 1, tablet: 1, desktop: 1}, // Responsive
-      binary: true,
-      class: "w-full"
     },
+    // name: {
+    //   inputId: "name_id",
+    //   label: "氏名",
+    //   defaultValue: '',
+    //   placeholder: "氏名を入力",
+    //   schema: "required|max:12", // Required, max 12 chars, hiragana only
+    //   colSpan: {mobile: 1, tablet: 2, desktop: 2}, // Responsive
+    //   class: "w-full",
+    //   help: "asdasdasda",
+    //   showWhen: {field: "terms", equals: true}
+    // },
+    // terms: {
+    //   label: "利用規約に同意する",
+    //   as: "Checkbox",
+    //   inputId: "terms_id",
+    //   defaultValue: true,
+    //   colSpan: {mobile: 1, tablet: 1, desktop: 1}, // Responsive
+    //   binary: true,
+    //   class: "w-full"
+    // },
     alcove_area: {
       "as": "InputNumber",
       "id": 216,
