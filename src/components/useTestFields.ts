@@ -15,17 +15,17 @@ const useTestFields = () => {
       optionValue: "code",
       colSpan: {mobile: 1, tablet: 1, desktop: 1}, // Responsive
     },
-    // name: {
-    //   inputId: "name_id",
-    //   label: "氏名",
-    //   defaultValue: '',
-    //   placeholder: "氏名を入力",
-    //   schema: "required|max:12", // Required, max 12 chars, hiragana only
-    //   colSpan: {mobile: 1, tablet: 2, desktop: 2}, // Responsive
-    //   class: "w-full",
-    //   help: "asdasdasda",
-    //   showWhen: {field: "terms", equals: true}
-    // },
+    name: {
+      inputId: "name_id",
+      label: "氏名",
+      defaultValue: '',
+      placeholder: "氏名を入力",
+      schema: "required|max:12", // Required, max 12 chars, hiragana only
+      colSpan: {mobile: 1, tablet: 2, desktop: 2}, // Responsive
+      class: "w-full",
+      help: "asdasdasda",
+      showWhen: {field: "terms", equals: true}
+    },
     // terms: {
     //   label: "利用規約に同意する",
     //   as: "Checkbox",
