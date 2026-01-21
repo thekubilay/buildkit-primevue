@@ -3,6 +3,16 @@ import countries from "../countries.ts";
 
 const useTestFields = () => {
   const fields = reactive<any>({
+    published_at: {
+      inputId: "published_at",
+      label: "公開スケジュール日時",
+      as: "DatePicker",
+      defaultValue: null,
+      placeholder: "入力してください",
+      class: "w-full",
+      showClear: true,
+      colSpan: {desktop: 2, table: 2, mobile: 2},
+    },
     country: {
       inputId: "buyer1_country",
       label: "国名",
@@ -26,15 +36,15 @@ const useTestFields = () => {
       help: "asdasdasda",
       showWhen: {field: "terms", equals: true}
     },
-    // terms: {
-    //   label: "利用規約に同意する",
-    //   as: "Checkbox",
-    //   inputId: "terms_id",
-    //   defaultValue: true,
-    //   colSpan: {mobile: 1, tablet: 1, desktop: 1}, // Responsive
-    //   binary: true,
-    //   class: "w-full"
-    // },
+    terms: {
+      label: "利用規約に同意する",
+      as: "Checkbox",
+      inputId: "terms_id",
+      defaultValue: true,
+      colSpan: {mobile: 1, tablet: 1, desktop: 1}, // Responsive
+      binary: true,
+      class: "w-full"
+    },
     alcove_area: {
       "as": "InputNumber",
       "id": 216,

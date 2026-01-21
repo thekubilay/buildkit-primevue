@@ -162,7 +162,7 @@ const useFormKitValidations = (fields?: FormKitProps['fields']) => {
       // Use z.any() for required fields without options to avoid type issues
       return z.any().refine(
         (value) => value !== null && value !== undefined && value !== '',
-        { message: "必須項目です" }
+        {message: "必須項目です"}
       );
     }
 
@@ -181,7 +181,7 @@ const useFormKitValidations = (fields?: FormKitProps['fields']) => {
     if (validValues.length === 0) {
       return z.any().refine(
         (value) => value !== null && value !== undefined && value !== '',
-        { message: "必須項目です" }
+        {message: "必須項目です"}
       );
     }
 
@@ -192,7 +192,7 @@ const useFormKitValidations = (fields?: FormKitProps['fields']) => {
       // Use z.enum for string values - this is more reliable across Zod instances
       //@ts-ignore
       return z.enum(validValues as [string, ...string[]], {
-        errorMap: () => ({ message: "有効な選択肢を選んでください" })
+        errorMap: () => ({message: "有効な選択肢を選んでください"})
       });
     }
 
@@ -211,7 +211,7 @@ const useFormKitValidations = (fields?: FormKitProps['fields']) => {
 
       return numberSchema.refine(
         (value) => validValues.includes(value),
-        { message: "有効な選択肢を選んでください" }
+        {message: "有効な選択肢を選んでください"}
       );
     }
 
@@ -230,7 +230,7 @@ const useFormKitValidations = (fields?: FormKitProps['fields']) => {
 
       return booleanSchema.refine(
         (value) => validValues.includes(value),
-        { message: "有効な選択肢を選んでください" }
+        {message: "有効な選択肢を選んでください"}
       );
     }
 
@@ -271,7 +271,7 @@ const useFormKitValidations = (fields?: FormKitProps['fields']) => {
           return false;
         });
       },
-      { message: isRequired ? "有効な選択肢を選んでください" : "必須項目です" }
+      {message: isRequired ? "有効な選択肢を選んでください" : "必須項目です"}
     );
   };
 
@@ -366,14 +366,24 @@ const useFormKitValidations = (fields?: FormKitProps['fields']) => {
               return v;
             },
             z.union([
-              z.number({ message: "数値を入力してください" }),
+              z.number({message: "数値を入力してください"}),
               z.undefined(),
               z.null(),
             ])
           );
         }
       } else if (field.as === 'Checkbox') {
-        fieldSchema = z.boolean();
+        // For checkboxes, use preprocessing to handle string values and ensure boolean type
+        fieldSchema = z.preprocess((v: any) => {
+          // Convert string representations to boolean
+          if (v === 'true') return true;
+          if (v === 'false') return false;
+          if (v === '' || v === null || v === undefined) return false;
+          // If already boolean, return as-is
+          if (typeof v === 'boolean') return v;
+          // Default to false for any other value
+          return false;
+        }, z.boolean());
       } else if (field.as === 'DatePicker') {
         const dateCoerce = z.preprocess((v: any) => {
           if (v === '' || v === undefined) return undefined;
@@ -524,7 +534,7 @@ const useFormKitValidations = (fields?: FormKitProps['fields']) => {
   };
 
   // Wrap resolver to temporarily set global Zod errorMap and build visibility-aware schema
-  const resolver = async ({ values, name }: any) => {
+  const resolver = async ({values, name}: any) => {
     const getErrorMap = (z as any).getErrorMap as (() => any) | undefined;
     const setErrorMap = (z as any).setErrorMap as ((map: any) => void) | undefined;
 
@@ -535,15 +545,15 @@ const useFormKitValidations = (fields?: FormKitProps['fields']) => {
     try {
       // If no fields provided, validate against empty object
       if (!fields) {
-        const dynamic = zodResolver(z.object({}), { errorMap: createCustomErrorMap() });
-        return await (dynamic as any)({ values, name });
+        const dynamic = zodResolver(z.object({}), {errorMap: createCustomErrorMap()});
+        return await (dynamic as any)({values, name});
       }
 
       // Build a fields copy where hidden fields are not required and do not include required in schema
       const adjustedFields: any = {};
       Object.entries(fields as any).forEach(([fname, cfg]: any) => {
         const visible = isFieldVisibleByConfig(cfg, values || {});
-        const copy: any = { ...cfg };
+        const copy: any = {...cfg};
         if (!visible) {
           copy.required = false;
           copy.schema = removeRequiredFromSchemaString(copy.schema);
@@ -553,8 +563,8 @@ const useFormKitValidations = (fields?: FormKitProps['fields']) => {
 
       // Create a fresh schema using adjusted fields and validate
       const dynamicSchema = createDynamicSchema(adjustedFields);
-      const dynamicResolver = zodResolver(dynamicSchema, { errorMap: createCustomErrorMap() });
-      return await (dynamicResolver as any)({ values, name });
+      const dynamicResolver = zodResolver(dynamicSchema, {errorMap: createCustomErrorMap()});
+      return await (dynamicResolver as any)({values, name});
     } finally {
       if (setErrorMap) setErrorMap(prevMap);
     }
