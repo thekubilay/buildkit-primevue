@@ -88,7 +88,7 @@
     "test:ui": "vitest"
   },
   "peerDependencies": {
-    "@primeuix/themes": "^1.2.3",
+    "@primeuix/themes": "^2.0.3",
     "@primeuix/utils": ">=0.0.1",
     "@primevue/forms": ">=4.0.0",
     "@primevue/themes": ">=4.0.0",
@@ -109,11 +109,15 @@
     "@vue/test-utils": "^2.4.6",
     "@vue/tsconfig": "^0.7.0",
     "jsdom": "^26.1.0",
-    "typescript": "~5.8.3",
-    "vite": "^7.1.2",
-    "vitest": "^3.2.4",
-    "vue-tsc": "^3.0.5",
     "tailwindcss": ">=4.1.13",
-    "tailwindcss-primeui": "^0.6.1"
+    "tailwindcss-primeui": "^0.6.1",
+    "typescript": "~5.8.3",
+    "vite": "7.1.11",
+    "vitest": "^3.2.4",
+    "vue-tsc": "^3.0.5"
+  },
+  "dependencies": {
+    "audit": "^0.0.6",
+    "fix": "^0.0.6"
   }
 }
