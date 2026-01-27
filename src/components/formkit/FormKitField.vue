@@ -1,5 +1,6 @@
 <template>
-  <FormField :name="String(name)" class="bk-field" :class="classNameWidth" v-show="isVisible" v-slot="{ error }">
+  <!-- Use v-if instead of v-show to completely remove the element from DOM when hidden -->
+  <FormField v-if="isVisible" :name="String(name)" class="bk-field" :class="classNameWidth" v-slot="{ error }">
     <div :class="className">
       <FormKitLabel>{{ label }}</FormKitLabel>
       <slot/>
@@ -125,6 +126,12 @@ const isVisible = computed<boolean>(() => {
   }
 
   return visible;
+});
+
+// Expose visibility to parent via provide so FormKit.vue can track it
+provide('$fcFieldVisibility', {
+  isVisible: isVisible,
+  fieldName: name,
 });
 
 // Clear the field's value whenever it becomes hidden to avoid showing stale input later

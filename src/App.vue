@@ -16,7 +16,6 @@ import FormKit from "./components/formkit/FormKit.vue";
 
 import {onMounted, reactive, ref} from "vue";
 
-import {setFields} from "./components/formkit/utils/setFields.ts";
 import {getPayload} from "./components/formkit/utils/getPayload.ts";
 
 import type {FormKitProps} from "./components/formkit/types/FormKitProps.ts";
@@ -25,17 +24,10 @@ import useTestFields from "./components/useTestFields.ts";
 
 
 onMounted(() => {
-  const data = {
-    // tags: 1,
-    // projects: ["大阪"],
-    // name: 300,
-    // email: "example@gmail.com",
-    // content: "kubilay turgut",
-    // birthdate: "2025-10-05T06:13:36.229409Z",
-    // desired_m2: 70,
-  }
-
-  setFields(data, fields)
+  // const data = {
+  //
+  // }
+  // setFields(data, fields)
 
 })
 

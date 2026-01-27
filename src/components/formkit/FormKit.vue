@@ -4,7 +4,12 @@
 
     <slot v-bind="$form">
       <template v-for="({ inputId, label, required, help, colSpan, ...rest }, name) in fields" :key="inputId ?? name">
-        <div class="bk-form-field-wrapper" :style="styleColumnSpan(colSpan)">
+        <!-- Only render wrapper if field is visible - this removes space when hidden -->
+        <div
+          v-if="fieldVisibility[String(name)]"
+          class="bk-form-field-wrapper"
+          :style="styleColumnSpan(colSpan)"
+        >
           <FormKitField :name="name" :input-id="inputId" :required="required" :label="label" :help="help" :rest="rest" :form-api="$form">
             <component :is="FormKitControl" :label="label" :input-id="inputId" :rest="rest" :size="size" :form-api="model"/>
           </FormKitField>
@@ -27,7 +32,7 @@ import FormKitField from "./FormKitField.vue";
 import FormKitControl from "./FormKitControl.vue";
 
 
-import {computed, provide, ref, watch} from "vue";
+import {computed, provide, ref, watch, reactive} from "vue";
 import {equals, includesMatch} from "./utils/visibility.ts";
 import {useResizeObserver} from "@vueuse/core";
 import type {FormKitProps} from "./types/FormKitProps.ts";
@@ -57,6 +62,52 @@ useResizeObserver(body, (entries) => {
 const formRef = ref<any>(null)
 const formKey = ref(0)
 
+// Reactive object to track current form values for visibility computation
+const formValues = reactive<Record<string, any>>({});
+
+// Reactive object to track field visibility
+const fieldVisibility = computed(() => {
+  const visibility: Record<string, boolean> = {};
+
+  Object.entries(fields as any).forEach(([fieldName, cfg]: [string, any]) => {
+    visibility[fieldName] = isFieldVisibleByValues(cfg, formValues);
+  });
+
+  return visibility;
+});
+
+/**
+ * Check if a field should be visible based on its showWhen/hideWhen config and current form values
+ */
+function isFieldVisibleByValues(cfg: any, values: Record<string, any>): boolean {
+  const showWhen = cfg?.showWhen;
+  const hideWhen = cfg?.hideWhen;
+
+  let visible = true;
+
+  if (showWhen?.field) {
+    const left = values[showWhen.field];
+    if (showWhen.includes !== undefined) {
+      visible = includesMatch(left, showWhen.includes);
+    } else {
+      visible = equals(left, showWhen.equals);
+    }
+  }
+
+  if (hideWhen?.field) {
+    const left = values[hideWhen.field];
+    let shouldHide = false;
+    if (hideWhen.includes !== undefined) {
+      shouldHide = includesMatch(left, hideWhen.includes);
+    } else {
+      shouldHide = equals(left, hideWhen.equals);
+    }
+    if (shouldHide) visible = false;
+  }
+
+  return visible;
+}
+
 // Expose the internal Form API via v-model so parents can call utils like clear(form, fields)
 watch(formRef, (val) => {
   try {
@@ -82,7 +133,11 @@ provide('$fcDynamicForm', {
         const state = api?.getFieldState ? api.getFieldState(fieldName) : api?.states?.[fieldName];
         return state?.value;
       },
-      (val) => cb(val),
+      (val) => {
+        // Update our reactive formValues tracker
+        formValues[fieldName] = val;
+        cb(val);
+      },
       {immediate: true}
     );
   },
@@ -98,6 +153,8 @@ provide('$fcDynamicForm', {
       } else if (api?.states?.[fieldName]) {
         api.states[fieldName].value = value;
       }
+      // Also update our reactive tracker
+      formValues[fieldName] = value;
     } catch {
       // no-op
     }
@@ -109,12 +166,46 @@ provide('$fcDynamicForm', {
       if (api?.setFieldValue) api.setFieldValue(fieldName, null);
       else if (api?.setValue) api.setValue(fieldName, null);
       else if (api?.states?.[fieldName]) api.states[fieldName].value = null;
+      // Also update our reactive tracker
+      formValues[fieldName] = null;
     } catch {
       // no-op
     }
   }
 });
 
+// Watch all field values to keep formValues in sync
+watch(
+  () => {
+    const api: any = formRef.value || model.value;
+    if (!api) return null;
+
+    // Collect all current values
+    const values: Record<string, any> = {};
+    Object.keys(fields).forEach(fieldName => {
+      try {
+        const state = api?.getFieldState ? api.getFieldState(fieldName) : api?.states?.[fieldName];
+        values[fieldName] = state?.value;
+      } catch {
+        // no-op
+      }
+    });
+    return values;
+  },
+  (newValues) => {
+    if (newValues) {
+      Object.entries(newValues).forEach(([key, value]) => {
+        formValues[key] = value;
+      });
+    }
+  },
+  { immediate: true, deep: true }
+);
+
+// Initialize formValues with default values
+Object.entries(fields as any).forEach(([fieldName, cfg]: [string, any]) => {
+  formValues[fieldName] = cfg?.defaultValue;
+});
 
 const initialValues = computed<any>(() => {
   const obj: { [key: string]: any } = {};

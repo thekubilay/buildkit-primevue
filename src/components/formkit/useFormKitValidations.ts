@@ -321,11 +321,23 @@ const useFormKitValidations = (fields?: FormKitProps['fields']) => {
     }
   };
 
-  const createDynamicSchema = (fields: FormKitProps['fields']) => {
+  /**
+   * Creates a dynamic Zod schema based on field configurations
+   * @param fields - Field configurations
+   * @param skipValidationForFields - Optional set of field names to skip ALL validation for (used for hidden fields)
+   */
+  const createDynamicSchema = (fields: FormKitProps['fields'], skipValidationForFields?: Set<string>) => {
     const schemaObject: { [key: string]: z.ZodType } = {};
 
     Object.keys(fields).forEach(fieldName => {
       const field = fields[fieldName];
+
+      // If this field should skip validation entirely (e.g., it's hidden), use z.any().optional()
+      if (skipValidationForFields?.has(fieldName)) {
+        schemaObject[fieldName] = z.any().optional();
+        return;
+      }
+
       let fieldSchema: z.ZodType = z.string();
 
       // Parse schema string to determine if field is required
@@ -525,14 +537,6 @@ const useFormKitValidations = (fields?: FormKitProps['fields']) => {
     return visible;
   };
 
-  const removeRequiredFromSchemaString = (schema?: string): string | undefined => {
-    if (!schema) return schema;
-    // split by | and remove tokens that are exactly 'required' or 'required()'
-    const parts = schema.split('|').map(s => s.trim()).filter(Boolean);
-    const filtered = parts.filter(p => !/^required\s*\(?\s*\)?$/.test(p));
-    return filtered.join(' | ');
-  };
-
   // Wrap resolver to temporarily set global Zod errorMap and build visibility-aware schema
   const resolver = async ({values, name}: any) => {
     const getErrorMap = (z as any).getErrorMap as (() => any) | undefined;
@@ -549,20 +553,17 @@ const useFormKitValidations = (fields?: FormKitProps['fields']) => {
         return await (dynamic as any)({values, name});
       }
 
-      // Build a fields copy where hidden fields are not required and do not include required in schema
-      const adjustedFields: any = {};
+      // Determine which fields are currently hidden and should skip ALL validation
+      const hiddenFields = new Set<string>();
       Object.entries(fields as any).forEach(([fname, cfg]: any) => {
         const visible = isFieldVisibleByConfig(cfg, values || {});
-        const copy: any = {...cfg};
         if (!visible) {
-          copy.required = false;
-          copy.schema = removeRequiredFromSchemaString(copy.schema);
+          hiddenFields.add(fname);
         }
-        adjustedFields[fname] = copy;
       });
 
-      // Create a fresh schema using adjusted fields and validate
-      const dynamicSchema = createDynamicSchema(adjustedFields);
+      // Create a fresh schema where hidden fields skip all validation
+      const dynamicSchema = createDynamicSchema(fields, hiddenFields);
       const dynamicResolver = zodResolver(dynamicSchema, {errorMap: createCustomErrorMap()});
       return await (dynamicResolver as any)({values, name});
     } finally {
