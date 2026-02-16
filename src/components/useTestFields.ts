@@ -14,6 +14,7 @@ const useTestFields = () => {
     zipcode: {
       inputId: "zipcode",
       label: "Zipcode",
+      as: "Zipcode",
       defaultValue: '5380042',
       placeholder: "000000",
       schema: "required",
