@@ -1,6 +1,6 @@
 {
   "name": "buildkit-primevue",
-  "version": "0.1.86",
+  "version": "0.1.87",
   "type": "module",
   "description": "FormKit components and helpers built on PrimeVue v4 with Tailwind CSS",
   "keywords": [
