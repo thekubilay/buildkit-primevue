@@ -39,7 +39,8 @@ const isLoading = ref(false)
 const form = ref<Record<string, any>>({})
 const FormKitArgs = reactive<FormKitProps>({
   fields: fields,
-  size: "small"
+  size: "small",
+  locale:"en",
 })
 
 const submit = async ({valid, states}: any): Promise<void> => {
