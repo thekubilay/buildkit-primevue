@@ -41,12 +41,6 @@ function mountForm(fields: any) {
   return {wrapper, model};
 }
 
-function findFieldWrappers(wrapper: any) {
-  // FormKitField renders a FormField div; our stub simply renders a div with slot
-  // We'll query by label text presence in DOM of FormKitField wrapper using v-show effect on root
-  return wrapper.findAllComponents({name: 'FormField'});
-}
-
 describe('FormKit visibility', () => {
   it('hides field when hideWhen condition matches and shows when not', async () => {
     const fields = makeFields();
@@ -54,24 +48,23 @@ describe('FormKit visibility', () => {
 
     await nextTick();
 
-    const fieldsEls = findFieldWrappers(wrapper);
-
-    const isVisible = (label: string) => {
-      const el = fieldsEls.find(w => w.text().includes(label))!;
-      const style = (el.element as HTMLElement).getAttribute('style') || '';
-      return !/display:\s*none/.test(style);
-    };
+    // The component uses v-if, so hidden fields are removed from the DOM entirely.
+    // Check that the wrapper div for each field exists or not.
+    const hasField = (label: string) => wrapper.html().includes(label);
 
     // name default is 'article' so email must be hidden, phone shown
-    expect(isVisible('Phone')).toBe(true);
-    expect(isVisible('Email')).toBe(false);
+    expect(hasField('Phone')).toBe(true);
+    expect(hasField('Email')).toBe(false);
 
-    // Change model state to trigger watchers
-    model.value.states.name = 'john';
+    // Change the form state to trigger watchers.
+    // Access the underlying Form mock component and update its reactive states.
+    const formComponent = wrapper.findComponent({name: 'Form'});
+    (formComponent.vm as any).states.name = { value: 'john' };
     await nextTick();
+    await nextTick(); // extra tick for watcher propagation
 
-    expect(isVisible('Email')).toBe(true);
-    expect(isVisible('Phone')).toBe(false);
+    expect(hasField('Email')).toBe(true);
+    expect(hasField('Phone')).toBe(false);
   });
 
   it('filters submitted states by visibility', async () => {
@@ -83,10 +76,10 @@ describe('FormKit visibility', () => {
     const form = wrapper.find('form');
     await form.trigger('submit');
 
-    const emitted = (wrapper.vm as any).$emit ? (wrapper.emitted && wrapper.emitted()) : wrapper.emitted();
+    const emitted = wrapper.emitted();
     const submitEvents = emitted['submit'];
     expect(submitEvents).toBeTruthy();
-    const payload = submitEvents[0][0];
+    const payload = submitEvents![0][0] as any;
     const stateKeys = Object.keys(payload.states);
     expect(stateKeys).toContain('name');
     expect(stateKeys).toContain('phone');
@@ -102,20 +95,17 @@ describe('FormKit visibility', () => {
     const {wrapper, model} = mountForm(fields);
     await nextTick();
 
-    const fieldsEls = findFieldWrappers(wrapper);
-    const isVisible = (label: string) => {
-      const el = fieldsEls.find(w => w.text().includes(label))!;
-      const style = (el.element as HTMLElement).getAttribute('style') || '';
-      return !/display:\s*none/.test(style);
-    };
+    const hasField = (label: string) => wrapper.html().includes(label);
 
-    expect(isVisible('Result')).toBe(true);
-    expect(isVisible('Blocked')).toBe(false);
+    expect(hasField('Result')).toBe(true);
+    expect(hasField('Blocked')).toBe(false);
 
-    model.value.states.keyword = 'foo bar';
+    const formComponent = wrapper.findComponent({name: 'Form'});
+    (formComponent.vm as any).states.keyword = { value: 'foo bar' };
+    await nextTick();
     await nextTick();
 
-    expect(isVisible('Result')).toBe(false);
-    expect(isVisible('Blocked')).toBe(true);
+    expect(hasField('Result')).toBe(false);
+    expect(hasField('Blocked')).toBe(true);
   });
 });
