@@ -17,6 +17,7 @@ import FormKit from "./components/formkit/FormKit.vue";
 import {onMounted, reactive, ref} from "vue";
 
 import {getPayload} from "./components/formkit/utils/getPayload.ts";
+import {setFields} from "./components/formkit/utils/setFields.ts";
 
 import type {FormKitProps} from "./components/formkit/types/FormKitProps.ts";
 
@@ -27,7 +28,7 @@ onMounted(() => {
   // const data = {
   //
   // }
-  // setFields(data, fields)
+  setFields({zipcode:5380042}, fields)
 
 })
 
