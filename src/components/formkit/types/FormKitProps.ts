@@ -26,7 +26,10 @@ export interface FormKitField {
   [key: string]: any; // For other field properties
 }
 
+import type { Locale } from "../locales/messages";
+
 export interface FormKitProps {
   fields: { [key: string]: FormKitField };
   size?: "small" | "medium" | "large";
+  locale?: Locale;
 }

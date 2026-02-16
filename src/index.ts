@@ -13,6 +13,7 @@ import FormKitLabel from './components/formkit/FormKitLabel.vue';
 
 // Types
 export * from './components/formkit/types/FormKitProps';
+export type { Locale } from './components/formkit/locales/messages';
 // Utils
 export * from './components/formkit/utils/visibility';
 export {setDynamicFields} from './components/formkit/utils/setDynamicFields';

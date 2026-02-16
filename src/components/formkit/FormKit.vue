@@ -42,12 +42,12 @@ import useFormKitValidations from "./useFormKitValidations.ts";
 import spanStyleMap from "./utils/spanStyleMap.ts";
 
 
-const {fields, size = "medium"} = defineProps<FormKitProps>();
+const {fields, size = "medium", locale = "ja"} = defineProps<FormKitProps>();
 
 const emit = defineEmits(["submit"])
 const model = defineModel("modelValue")
 
-const resolver = computed(() => useFormKitValidations(fields).resolver)
+const resolver = computed(() => useFormKitValidations(fields, locale).resolver)
 
 const body = ref<HTMLElement>(document.body);
 const ww = ref(2600)

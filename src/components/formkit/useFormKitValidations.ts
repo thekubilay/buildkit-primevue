@@ -2,8 +2,11 @@ import {zodResolver} from "@primevue/forms/resolvers/zod";
 import {z} from "zod";
 import type {FormKitProps} from "./types/FormKitProps.ts";
 import {equals, includesMatch} from "./utils/visibility.ts";
+import {messages, type Locale, type LocaleMessages} from "./locales/messages.ts";
 
-const useFormKitValidations = (fields?: FormKitProps['fields']) => {
+const useFormKitValidations = (fields?: FormKitProps['fields'], locale: Locale = "ja") => {
+
+  const m: LocaleMessages = messages[locale];
 
   // Create a custom error map that doesn't affect the global Zod state
   const createCustomErrorMap = () => {
@@ -11,108 +14,100 @@ const useFormKitValidations = (fields?: FormKitProps['fields']) => {
       if (issue.code === 'invalid_type') {
         // If a value is missing/null, show a required-style message
         if ((issue.received as any) === 'null' || (issue.received as any) === 'undefined') {
-          return {message: '必須項目です'};
+          return {message: m.required};
         }
-        const typeLabel: Record<string, string> = {
-          string: '文字列',
-          number: '数値',
-          boolean: '真偽値',
-          array: '配列',
-          date: '日付',
-          object: 'オブジェクト'
-        };
-        const expected = typeLabel[(issue as any).expected] || (issue as any).expected;
-        return {message: `無効な入力です（${expected}が必要です）`};
+        const expected = m.typeLabels[(issue as any).expected as keyof typeof m.typeLabels] || (issue as any).expected;
+        return {message: m.invalidType(expected)};
       }
 
       // Add specific handling for union validation errors
       if (issue.code === 'invalid_union') {
-        return {message: '選択された値が無効です'};
+        return {message: m.invalidUnion};
       }
 
       // Handle invalid literal (for Select fields)
       if (issue.code === 'invalid_literal') {
-        return {message: '有効な選択肢を選んでください'};
+        return {message: m.invalidLiteral};
       }
 
       // Handle invalid enum
       if (issue.code === 'invalid_enum_value') {
-        return {message: '有効な選択肢を選んでください'};
+        return {message: m.invalidEnum};
       }
 
       // Fallback to a context default or generic message
-      return {message: (ctx && (ctx as any).defaultError) || '入力値が無効です'};
+      return {message: (ctx && (ctx as any).defaultError) || m.fallback};
     };
   };
 
   const customRuleSchema: { [key: string]: (param?: string) => z.ZodType } = {
     // Basic required rule
     required: () => z.union([
-      z.string().min(1, {message: "必須項目です"}),
+      z.string().min(1, {message: m.required}),
       z.number(),
-      z.array(z.any()).min(1, {message: "必須項目です"})
+      z.array(z.any()).min(1, {message: m.required})
     ]),
 
     // Email validation
-    email: () => z.string().email({message: "有効なメールアドレスを入力してください"}),
+    email: () => z.string().email({message: m.email}),
 
     // Min length/value validation
     min: (param?: string) => {
       const minValue = param ? parseInt(param) : 1;
-      return z.string().min(minValue, {message: `最低${minValue}文字で入力してください`});
+      return z.string().min(minValue, {message: m.min(minValue)});
     },
 
     // Max length/value validation
     max: (param?: string) => {
       const maxValue = param ? parseInt(param) : 255;
-      return z.string().max(maxValue, {message: `最大${maxValue}文字で入力してください`});
+      return z.string().max(maxValue, {message: m.max(maxValue)});
     },
 
     // Katakana validation - supports both full-width and half-width katakana
     katakana: () => z.string().refine(
       (value) => /^[ア-ヶー゠-ヿｦ-ﾟ\s]*$/.test(value),
-      {message: "カタカナと空白のみで入力してください"}
+      {message: m.katakana}
     ),
 
     // Hiragana validation
     hiragana: () => z.string().refine(
       (value) => /^[あ-んー\s]*$/.test(value),
-      {message: "ひらがなと空白のみで入力してください"}
+      {message: m.hiragana}
     ),
 
     // Number-only validation
     number: () => z.string().refine(
       (value) => value === '' || /^\d+$/.test(value),
-      {message: "数字のみで入力してください"}
+      {message: m.numberOnly}
     ),
 
     // Romaji validation
     romaji: () => z.string().refine(
       (value) => value.length === 0 || /^[a-zA-Z0-9_-]+$/.test(value),
-      {message: "ローマ字、数字、アンダースコア、ハイフンのみで入力してください"}
+      {message: m.romaji}
     ),
 
     // No space validation
     nospace: () => z.string().refine(
       (value) => !/\s/.test(value),
-      {message: "空白を含まないでください"}
+      {message: m.nospace}
     ),
 
     // Length validation (exact)
     length: (param?: string) => {
       const length = param ? parseInt(param) : 1;
-      return z.string().length(length, {message: `${length}文字で入力してください`});
+      return z.string().length(length, {message: m.length(length)});
     },
 
     // Between validation
     between: (param?: string) => {
       const [min, max] = param ? param.split(',').map(p => parseInt(p.trim())) : [0, 255];
-      return z.string().min(min, {message: `${min}文字以上で入力してください`})
-        .max(max, {message: `${max}文字以下で入力してください`});
+      return z.string().min(min, {message: m.betweenMin(min)})
+        .max(max, {message: m.betweenMax(max)});
     },
 
     // URL validation
-    url: () => z.string().url({message: "有効なURLを入力してください"}),
+    url: () => z.string().url({message: m.url}),
 
     // Regex validation
     regex: (param?: string) => {
@@ -121,7 +116,7 @@ const useFormKitValidations = (fields?: FormKitProps['fields']) => {
         const regex = new RegExp(param);
         return z.string().refine(
           (value) => regex.test(value),
-          {message: "入力形式が正しくありません"}
+          {message: m.regex}
         );
       } catch {
         return z.string();
@@ -162,7 +157,7 @@ const useFormKitValidations = (fields?: FormKitProps['fields']) => {
       // Use z.any() for required fields without options to avoid type issues
       return z.any().refine(
         (value) => value !== null && value !== undefined && value !== '',
-        {message: "必須項目です"}
+        {message: m.selectRequired}
       );
     }
 
@@ -181,7 +176,7 @@ const useFormKitValidations = (fields?: FormKitProps['fields']) => {
     if (validValues.length === 0) {
       return z.any().refine(
         (value) => value !== null && value !== undefined && value !== '',
-        {message: "必須項目です"}
+        {message: m.selectRequired}
       );
     }
 
@@ -192,7 +187,7 @@ const useFormKitValidations = (fields?: FormKitProps['fields']) => {
       // Use z.enum for string values - this is more reliable across Zod instances
       //@ts-ignore
       return z.enum(validValues as [string, ...string[]], {
-        errorMap: () => ({message: "有効な選択肢を選んでください"})
+        errorMap: () => ({message: m.selectInvalid})
       });
     }
 
@@ -211,7 +206,7 @@ const useFormKitValidations = (fields?: FormKitProps['fields']) => {
 
       return numberSchema.refine(
         (value) => validValues.includes(value),
-        {message: "有効な選択肢を選んでください"}
+        {message: m.selectInvalid}
       );
     }
 
@@ -230,7 +225,7 @@ const useFormKitValidations = (fields?: FormKitProps['fields']) => {
 
       return booleanSchema.refine(
         (value) => validValues.includes(value),
-        {message: "有効な選択肢を選んでください"}
+        {message: m.selectInvalid}
       );
     }
 
@@ -271,7 +266,7 @@ const useFormKitValidations = (fields?: FormKitProps['fields']) => {
           return false;
         });
       },
-      {message: isRequired ? "有効な選択肢を選んでください" : "必須項目です"}
+      {message: isRequired ? m.selectInvalid : m.selectRequired}
     );
   };
 
@@ -281,27 +276,27 @@ const useFormKitValidations = (fields?: FormKitProps['fields']) => {
       case 'katakana':
         return fieldSchema.refine(
           (value) => !value || /^[ア-ヶー゠-ヿｦ-ﾟ\s]*$/.test(value),
-          {message: "カタカナと空白のみで入力してください"}
+          {message: m.katakana}
         );
       case 'hiragana':
         return fieldSchema.refine(
           (value) => !value || /^[あ-んー\s]*$/.test(value),
-          {message: "ひらがなと空白のみで入力してください"}
+          {message: m.hiragana}
         );
       case 'number':
         return fieldSchema.refine(
           (value) => !value || /^\d+$/.test(value),
-          {message: "数字のみで入力してください"}
+          {message: m.numberOnly}
         );
       case 'romaji':
         return fieldSchema.refine(
           (value) => !value || /^[a-zA-Z0-9_-]+$/.test(value),
-          {message: "ローマ字、数字、アンダースコア、ハイフンのみで入力してください"}
+          {message: m.romaji}
         );
       case 'nospace':
         return fieldSchema.refine(
           (value) => !value || !/\s/.test(value),
-          {message: "空白を含まないでください"}
+          {message: m.nospace}
         );
       case 'regex':
         if (param) {
@@ -309,7 +304,7 @@ const useFormKitValidations = (fields?: FormKitProps['fields']) => {
             const regex = new RegExp(param);
             return fieldSchema.refine(
               (value) => !value || regex.test(value),
-              {message: "入力形式が正しくありません"}
+              {message: m.regex}
             );
           } catch (error) {
             console.warn(`Invalid regex pattern: ${param}`);
@@ -358,15 +353,13 @@ const useFormKitValidations = (fields?: FormKitProps['fields']) => {
           }
           return v;
         }, z.number({
-          message: "数値を入力してください"
+          message: m.numberInput
         }));
 
         if (isRequired) {
           fieldSchema = numberCoerce;
         } else {
           // For non-required number fields, allow empty string, null, or undefined without error.
-          // Important: Use preprocess with a union so that optionality is checked AFTER preprocessing,
-          // avoiding the case where '' becomes undefined and still triggers z.number().
           fieldSchema = z.preprocess(
             (v: any) => {
               if (v === '' || v === undefined) return undefined;
@@ -378,7 +371,7 @@ const useFormKitValidations = (fields?: FormKitProps['fields']) => {
               return v;
             },
             z.union([
-              z.number({message: "数値を入力してください"}),
+              z.number({message: m.numberInput}),
               z.undefined(),
               z.null(),
             ])
@@ -406,7 +399,7 @@ const useFormKitValidations = (fields?: FormKitProps['fields']) => {
           }
           return v;
         }, z.date({
-          message: "日付を選択してください"
+          message: m.dateInput
         }));
 
         if (isRequired) {
@@ -431,7 +424,7 @@ const useFormKitValidations = (fields?: FormKitProps['fields']) => {
       } else {
         // For string fields, handle optional vs required differently
         if (isRequired) {
-          fieldSchema = z.string().min(1, {message: "必須項目です"});
+          fieldSchema = z.string().min(1, {message: m.required});
         } else {
           // For non-required string fields, accept any string including empty
           fieldSchema = z.union([z.string(), z.null(), z.undefined()]).optional();
@@ -447,23 +440,23 @@ const useFormKitValidations = (fields?: FormKitProps['fields']) => {
             // Handle different field types using proper type checking
             if (isZodString(fieldSchema)) {
               if (rule === 'required') {
-                fieldSchema = fieldSchema.min(1, {message: "必須項目です"});
+                fieldSchema = fieldSchema.min(1, {message: m.required});
               } else if (rule === 'email') {
-                fieldSchema = fieldSchema.email({message: "有効なメールアドレスを入力してください"});
+                fieldSchema = fieldSchema.email({message: m.email});
               } else if (rule === 'min') {
                 const minValue = param ? parseInt(param) : 1;
-                fieldSchema = fieldSchema.min(minValue, {message: `最低${minValue}文字で入力してください`});
+                fieldSchema = fieldSchema.min(minValue, {message: m.min(minValue)});
               } else if (rule === 'max') {
                 const maxValue = param ? parseInt(param) : 255;
-                fieldSchema = fieldSchema.max(maxValue, {message: `最大${maxValue}文字で入力してください`});
+                fieldSchema = fieldSchema.max(maxValue, {message: m.max(maxValue)});
               } else if (rule === 'length') {
                 const length = param ? parseInt(param) : 1;
-                fieldSchema = fieldSchema.length(length, {message: `${length}文字で入力してください`});
+                fieldSchema = fieldSchema.length(length, {message: m.length(length)});
               } else if (rule === 'between') {
                 const [min, max] = param ? param.split(',').map(p => parseInt(p.trim())) : [0, 255];
                 fieldSchema = fieldSchema
-                  .min(min, {message: `${min}文字以上で入力してください`})
-                  .max(max, {message: `${max}文字以下で入力してください`});
+                  .min(min, {message: m.betweenMin(min)})
+                  .max(max, {message: m.betweenMax(max)});
               } else if (rule === 'url') {
                 fieldSchema = fieldSchema.refine(
                   (value) => {
@@ -475,14 +468,14 @@ const useFormKitValidations = (fields?: FormKitProps['fields']) => {
                       return false;
                     }
                   },
-                  {message: "有効なURLを入力してください"}
+                  {message: m.url}
                 );
               } else if (rule === 'regex' && param) {
                 try {
                   const regex = new RegExp(param);
                   fieldSchema = fieldSchema.refine(
                     (value) => !value || regex.test(value),
-                    {message: "入力形式が正しくありません"}
+                    {message: m.regex}
                   );
                 } catch (error) {
                   console.warn(`Invalid regex pattern: ${param}`);
@@ -493,17 +486,17 @@ const useFormKitValidations = (fields?: FormKitProps['fields']) => {
               }
             } else if (isZodArray(fieldSchema)) {
               if (rule === 'required') {
-                fieldSchema = fieldSchema.min(1, {message: "必須項目です"});
+                fieldSchema = fieldSchema.min(1, {message: m.required});
               } else if (rule === 'min') {
                 const minValue = param ? parseInt(param) : 1;
-                fieldSchema = fieldSchema.min(minValue, {message: `最低${minValue}項目を選択してください`});
+                fieldSchema = fieldSchema.min(minValue, {message: m.arrayMin(minValue)});
               } else if (rule === 'max') {
                 const maxValue = param ? parseInt(param) : 10;
-                fieldSchema = fieldSchema.max(maxValue, {message: `最大${maxValue}項目まで選択できます`});
+                fieldSchema = fieldSchema.max(maxValue, {message: m.arrayMax(maxValue)});
               }
             } else if (isZodBoolean(fieldSchema)) {
               if (rule === 'required') {
-                fieldSchema = fieldSchema.refine((v) => v === true, {message: "必須項目です"});
+                fieldSchema = fieldSchema.refine((v) => v === true, {message: m.required});
               }
             }
           }
@@ -543,9 +536,9 @@ const useFormKitValidations = (fields?: FormKitProps['fields']) => {
     const setErrorMap = (z as any).setErrorMap as ((map: any) => void) | undefined;
 
     const prevMap = getErrorMap ? getErrorMap() : undefined;
-    const jpMap = createCustomErrorMap();
+    const customMap = createCustomErrorMap();
 
-    if (setErrorMap) setErrorMap(jpMap);
+    if (setErrorMap) setErrorMap(customMap);
     try {
       // If no fields provided, validate against empty object
       if (!fields) {
