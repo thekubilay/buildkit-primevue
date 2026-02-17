@@ -24,9 +24,12 @@ export interface FormKitField {
   [key: string]: any;
 }
 
+export type Locale = 'ja' | 'en';
+
 export interface FormKitProps {
   fields: { [key: string]: FormKitField };
   size?: 'small' | 'medium' | 'large';
+  locale?: Locale;
 }
 
 // Components
