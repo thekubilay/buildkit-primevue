@@ -1,3 +1,9 @@
+export interface VisibilityCondition {
+  field: string;
+  equals?: any;
+  includes?: any | any[];
+}
+
 export interface FormKitField {
   groupId?: string;
   label?: string;
@@ -12,16 +18,8 @@ export interface FormKitField {
   schema?: string; // Schema string like "required|max:12|email"
   vertical: boolean; // this is for group inputs checkboxGroup RadioButton
   options?: Array<{ label: string; value: any }>; // For Select, RadioButton, CheckboxGroup
-  showWhen?: {
-    field: string;
-    equals?: any;
-    includes?: any | any[];
-  };
-  hideWhen?: {
-    field: string;
-    equals?: any;
-    includes?: any | any[];
-  };
+  showWhen?: VisibilityCondition | VisibilityCondition[];
+  hideWhen?: VisibilityCondition | VisibilityCondition[];
 
   [key: string]: any; // For other field properties
 }

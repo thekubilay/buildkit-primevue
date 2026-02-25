@@ -28,7 +28,31 @@ onMounted(() => {
   // const data = {
   //
   // }
-  setFields({zipcode:5380042}, fields)
+  setFields({
+    "id": 2852709981,
+    "order_num": 0,
+    "name": "「インテリアコーディネーターと巡る『家具ショップツアー』」申し込みフォーム",
+    "add_help_text": false,
+    "help_text_type": "text",
+    "help_text_position": "top",
+    "help_text": null,
+    "help_text_color": null,
+    "help_text_size": null,
+    "app_name": "viterve",
+    "slot_min_time": "11:00",
+    "slot_max_time": "17:00",
+    "calendar_start_at": "2026-02-27T15:00:00Z",
+    "apply_end_at": "2026-02-28T15:00:00Z",
+    "status": "published",
+    "day_span": 1,
+    "cancel_validation_day_span": 1,
+    "holidays": null,
+    "extra_data": null,
+    "created_at": "2026-02-05T02:12:20.178000Z",
+    "updated_at": "2026-02-06T09:46:05.043585Z",
+    "project": null,
+    "form": 158
+  }, fields)
 
 })
 
@@ -40,7 +64,7 @@ const form = ref<Record<string, any>>({})
 const FormKitArgs = reactive<FormKitProps>({
   fields: fields,
   size: "small",
-  locale:"en",
+  locale: "en",
 })
 
 const submit = async ({valid, states}: any): Promise<void> => {

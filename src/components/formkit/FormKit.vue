@@ -77,6 +77,27 @@ const fieldVisibility = computed(() => {
 });
 
 /**
+ * Evaluate a single visibility condition against current form values
+ */
+function evalCondition(condition: any, values: Record<string, any>): boolean {
+  const left = values[condition.field];
+  if (condition.includes !== undefined) {
+    return includesMatch(left, condition.includes);
+  }
+  return equals(left, condition.equals);
+}
+
+/**
+ * Evaluate showWhen/hideWhen which can be a single condition or an array of conditions (OR logic)
+ */
+function evalConditions(conditions: any, values: Record<string, any>): boolean {
+  if (Array.isArray(conditions)) {
+    return conditions.some(c => evalCondition(c, values));
+  }
+  return evalCondition(conditions, values);
+}
+
+/**
  * Check if a field should be visible based on its showWhen/hideWhen config and current form values
  */
 function isFieldVisibleByValues(cfg: any, values: Record<string, any>): boolean {
@@ -85,24 +106,12 @@ function isFieldVisibleByValues(cfg: any, values: Record<string, any>): boolean 
 
   let visible = true;
 
-  if (showWhen?.field) {
-    const left = values[showWhen.field];
-    if (showWhen.includes !== undefined) {
-      visible = includesMatch(left, showWhen.includes);
-    } else {
-      visible = equals(left, showWhen.equals);
-    }
+  if (showWhen) {
+    visible = evalConditions(showWhen, values);
   }
 
-  if (hideWhen?.field) {
-    const left = values[hideWhen.field];
-    let shouldHide = false;
-    if (hideWhen.includes !== undefined) {
-      shouldHide = includesMatch(left, hideWhen.includes);
-    } else {
-      shouldHide = equals(left, hideWhen.equals);
-    }
-    if (shouldHide) visible = false;
+  if (hideWhen) {
+    if (evalConditions(hideWhen, values)) visible = false;
   }
 
   return visible;
@@ -135,7 +144,11 @@ provide('$fcDynamicForm', {
       },
       (val) => {
         // Update our reactive formValues tracker
-        formValues[fieldName] = val;
+        // Skip undefined to avoid overwriting defaults before Form API initializes
+        if (val !== undefined) {
+          formValues[fieldName] = val;
+        }
+        console.log(fieldName, val)
         cb(val);
       },
       {immediate: true}
@@ -195,7 +208,9 @@ watch(
   (newValues) => {
     if (newValues) {
       Object.entries(newValues).forEach(([key, value]) => {
-        formValues[key] = value;
+        if (value !== undefined) {
+          formValues[key] = value;
+        }
       });
     }
   },
@@ -238,26 +253,7 @@ const styleColumnSpan = computed(() => (span: { mobile: number, tablet: number, 
 })
 
 function isFieldVisibleByConfig(_: string, cfg: any, values: Record<string, any>): boolean {
-  // underscore is fieldName
-
-  const showWhen = cfg?.showWhen;
-  const hideWhen = cfg?.hideWhen;
-
-  let visible = true;
-  if (showWhen?.field) {
-    const left = values[showWhen.field];
-    if (showWhen.includes !== undefined) visible = includesMatch(left, showWhen.includes);
-    else visible = equals(left, showWhen.equals);
-  }
-  if (hideWhen?.field) {
-    const left = values[hideWhen.field];
-
-    let shouldHide = false;
-    if (hideWhen.includes !== undefined) shouldHide = includesMatch(left, hideWhen.includes);
-    else shouldHide = equals(left, hideWhen.equals);
-    if (shouldHide) visible = false;
-  }
-  return visible;
+  return isFieldVisibleByValues(cfg, values);
 }
 
 const submit = (event: any) => {

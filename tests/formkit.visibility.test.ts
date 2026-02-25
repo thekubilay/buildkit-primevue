@@ -86,6 +86,69 @@ describe('FormKit visibility', () => {
     expect(stateKeys).not.toContain('email');
   });
 
+  it('supports array of conditions with OR logic for showWhen', async () => {
+    const fields: any = {
+      type: {label: 'Type', defaultValue: 'none'},
+      mode: {label: 'Mode', defaultValue: 'basic'},
+      detail: {
+        label: 'Detail', defaultValue: '',
+        showWhen: [
+          {field: 'type', equals: 'alert'},
+          {field: 'mode', equals: 'advanced'},
+        ],
+      },
+    };
+    const {wrapper} = mountForm(fields);
+    await nextTick();
+
+    const hasField = (label: string) => wrapper.html().includes(label);
+
+    // Neither condition matches → hidden
+    expect(hasField('Detail')).toBe(false);
+
+    // Match first condition
+    const formComponent = wrapper.findComponent({name: 'Form'});
+    (formComponent.vm as any).states.type = {value: 'alert'};
+    await nextTick();
+    await nextTick();
+    expect(hasField('Detail')).toBe(true);
+
+    // Reset first, match second condition
+    (formComponent.vm as any).states.type = {value: 'none'};
+    (formComponent.vm as any).states.mode = {value: 'advanced'};
+    await nextTick();
+    await nextTick();
+    expect(hasField('Detail')).toBe(true);
+  });
+
+  it('supports array of conditions with OR logic for hideWhen', async () => {
+    const fields: any = {
+      type: {label: 'Type', defaultValue: 'none'},
+      mode: {label: 'Mode', defaultValue: 'basic'},
+      detail: {
+        label: 'Detail', defaultValue: '',
+        hideWhen: [
+          {field: 'type', equals: 'secret'},
+          {field: 'mode', equals: 'hidden'},
+        ],
+      },
+    };
+    const {wrapper} = mountForm(fields);
+    await nextTick();
+
+    const hasField = (label: string) => wrapper.html().includes(label);
+
+    // No condition matches → visible
+    expect(hasField('Detail')).toBe(true);
+
+    // Match one hideWhen condition → hidden
+    const formComponent = wrapper.findComponent({name: 'Form'});
+    (formComponent.vm as any).states.type = {value: 'secret'};
+    await nextTick();
+    await nextTick();
+    expect(hasField('Detail')).toBe(false);
+  });
+
   it('supports includes match for showWhen/hideWhen', async () => {
     const fields: any = {
       keyword: {label: 'Keyword', defaultValue: 'hello world'},
