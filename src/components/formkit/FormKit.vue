@@ -148,7 +148,6 @@ provide('$fcDynamicForm', {
         if (val !== undefined) {
           formValues[fieldName] = val;
         }
-        console.log(fieldName, val)
         cb(val);
       },
       {immediate: true}
