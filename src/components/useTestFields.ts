@@ -100,6 +100,32 @@ const useTestFields = () => {
       colSpan: {desktop: 1, table: 1, mobile: 1},
       hideWhen: {field: "add_help_text", equals: false}
     },
+    zipcode: {
+      inputId: "zipcode_id",
+      label: "郵便番号",
+      defaultValue: '',
+      as: "Zipcode",
+      placeholder: "1000001",
+      schema: "required",
+      class: "w-full",
+      colSpan: {desktop: 2, table: 1, mobile: 1}
+    },
+    prefecture: {
+      inputId: "prefecture_id",
+      label: "都道府県",
+      defaultValue: '',
+      placeholder: "都道府県",
+      class: "w-full",
+      colSpan: {desktop: 2, table: 1, mobile: 1}
+    },
+    address: {
+      inputId: "address_id",
+      label: "住所",
+      defaultValue: '',
+      placeholder: "住所を入力",
+      class: "w-full",
+      colSpan: {desktop: 1, table: 1, mobile: 1}
+    },
     form: {
       inputId: "form_id",
       label: "フォーム",

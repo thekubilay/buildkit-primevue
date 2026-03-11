@@ -22,8 +22,14 @@
 
   <IconField v-else-if="restAs === 'Zipcode'">
     <InputText :name="name" v-bind="bindings" :size="size"/>
-    <InputIcon v-if="!isLoading" class="fa-regular fa-search bk-clickable" @click="setAddress(formApi)"/>
-    <InputIcon v-else class="fa-regular fa-spinner fa-spin"/>
+    <InputIcon v-if="!isLoading" class="bk-clickable" @click="setAddress(formApi)">
+      <svg v-if="!zipcodeSearchIcon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <i v-else :class="zipcodeSearchIcon"/>
+    </InputIcon>
+    <InputIcon v-else>
+      <svg v-if="!zipcodeLoadingIcon" class="bk-spin" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"/><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/><line x1="4.93" y1="19.07" x2="7.76" y2="16.24"/><line x1="16.24" y1="7.76" x2="19.07" y2="4.93"/></svg>
+      <i v-else :class="zipcodeLoadingIcon"/>
+    </InputIcon>
   </IconField>
 
   <!-- icon version component -->
@@ -91,6 +97,9 @@ const component = computed(() => {
   return resolved || key;
 });
 
+const zipcodeSearchIcon = computed(() => props.rest?.zipcodeSearchIcon || null)
+const zipcodeLoadingIcon = computed(() => props.rest?.zipcodeLoadingIcon || null)
+
 const iconLeft = props.rest?.iconLeft || null
 const iconRight = props.rest?.iconRight || null
 const isIconVersion = props.rest?.iconLeft || props.rest?.iconRight
@@ -126,7 +135,7 @@ const PrimeRadioButton = (PrimeVue as any).RadioButton
 const bindings = computed(() => {
   const binds: any = {}
 
-  const disallowedProps = new Set(["defaultValue", "schema", "showWhen", "hideWhen", "colSpan"]);
+  const disallowedProps = new Set(["defaultValue", "schema", "showWhen", "hideWhen", "colSpan", "zipcodeSearchIcon", "zipcodeLoadingIcon"]);
 
   Object.keys(props.rest || {}).forEach(k => {
     if (disallowedProps.has(k)) {

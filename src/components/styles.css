@@ -85,6 +85,10 @@
 /* Clickable icon */
 .bk-clickable { cursor: pointer; }
 
+/* Spin animation for loading icon */
+.bk-spin { animation: bk-spin 1s linear infinite; }
+@keyframes bk-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
 /* Button-like options for Radio buttonType variant */
 .bk-button-option {
   padding: 0.5rem 0.75rem; /* py-2 px-3 */
