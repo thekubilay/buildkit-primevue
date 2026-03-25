@@ -509,23 +509,33 @@ const useFormKitValidations = (fields?: FormKitProps['fields'], locale: Locale =
     return z.object(schemaObject);
   };
 
+  // helper to evaluate a single visibility condition
+  const evalCondition = (condition: any, values: Record<string, any>): boolean => {
+    if (!condition?.field) return false;
+    const left = values?.[condition.field];
+    if (condition.includes !== undefined) return includesMatch(left, condition.includes);
+    return equals(left, condition.equals);
+  };
+
+  // helper to evaluate conditions that can be a single object or an array (OR logic)
+  const evalConditions = (conditions: any, values: Record<string, any>): boolean => {
+    if (Array.isArray(conditions)) {
+      return conditions.some(c => evalCondition(c, values));
+    }
+    return evalCondition(conditions, values);
+  };
+
   // helper to compute visibility from field config and current values
   const isFieldVisibleByConfig = (cfg: any, values: Record<string, any>): boolean => {
     const showWhen = cfg?.showWhen;
     const hideWhen = cfg?.hideWhen;
 
     let visible = true;
-    if (showWhen?.field) {
-      const left = values?.[showWhen.field];
-      if (showWhen.includes !== undefined) visible = includesMatch(left, showWhen.includes);
-      else visible = equals(left, showWhen.equals);
+    if (showWhen) {
+      visible = evalConditions(showWhen, values);
     }
-    if (hideWhen?.field) {
-      const left = values?.[hideWhen.field];
-      let shouldHide = false;
-      if (hideWhen.includes !== undefined) shouldHide = includesMatch(left, hideWhen.includes);
-      else shouldHide = equals(left, hideWhen.equals);
-      if (shouldHide) visible = false;
+    if (hideWhen) {
+      if (evalConditions(hideWhen, values)) visible = false;
     }
     return visible;
   };
