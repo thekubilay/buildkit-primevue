@@ -88,11 +88,24 @@ function evalCondition(condition: any, values: Record<string, any>): boolean {
 }
 
 /**
- * Evaluate showWhen/hideWhen which can be a single condition or an array of conditions (OR logic)
+ * Evaluate showWhen/hideWhen. Supports:
+ *  - single leaf: { field, equals|includes }
+ *  - array (legacy OR): [cond, cond, ...]
+ *  - { or: [...] } explicit OR
+ *  - { and: [...] } AND
+ *  - arbitrarily nested combinations
  */
 function evalConditions(conditions: any, values: Record<string, any>): boolean {
   if (Array.isArray(conditions)) {
-    return conditions.some(c => evalCondition(c, values));
+    return conditions.some(c => evalConditions(c, values));
+  }
+  if (conditions && typeof conditions === 'object') {
+    if (Array.isArray(conditions.and)) {
+      return conditions.and.every((c: any) => evalConditions(c, values));
+    }
+    if (Array.isArray(conditions.or)) {
+      return conditions.or.some((c: any) => evalConditions(c, values));
+    }
   }
   return evalCondition(conditions, values);
 }

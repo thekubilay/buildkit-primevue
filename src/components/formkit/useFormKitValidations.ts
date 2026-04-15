@@ -517,10 +517,18 @@ const useFormKitValidations = (fields?: FormKitProps['fields'], locale: Locale =
     return equals(left, condition.equals);
   };
 
-  // helper to evaluate conditions that can be a single object or an array (OR logic)
+  // helper to evaluate conditions: leaf, array (legacy OR), { and: [...] }, { or: [...] }, nestable
   const evalConditions = (conditions: any, values: Record<string, any>): boolean => {
     if (Array.isArray(conditions)) {
-      return conditions.some(c => evalCondition(c, values));
+      return conditions.some(c => evalConditions(c, values));
+    }
+    if (conditions && typeof conditions === 'object') {
+      if (Array.isArray(conditions.and)) {
+        return conditions.and.every((c: any) => evalConditions(c, values));
+      }
+      if (Array.isArray(conditions.or)) {
+        return conditions.or.some((c: any) => evalConditions(c, values));
+      }
     }
     return evalCondition(conditions, values);
   };

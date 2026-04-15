@@ -1,8 +1,22 @@
-export interface VisibilityCondition {
+export interface VisibilityLeaf {
   field: string;
   equals?: any;
   includes?: any | any[];
 }
+
+export interface VisibilityAnd {
+  and: VisibilityCondition[];
+}
+
+export interface VisibilityOr {
+  or: VisibilityCondition[];
+}
+
+export type VisibilityCondition =
+  | VisibilityLeaf
+  | VisibilityAnd
+  | VisibilityOr
+  | VisibilityCondition[];
 
 export interface FormKitField {
   groupId?: string;

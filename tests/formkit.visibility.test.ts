@@ -149,6 +149,101 @@ describe('FormKit visibility', () => {
     expect(hasField('Detail')).toBe(false);
   });
 
+  it('supports { and: [...] } requiring all conditions to match for showWhen', async () => {
+    const fields: any = {
+      type: {label: 'Type', defaultValue: 'alert'},
+      mode: {label: 'Mode', defaultValue: 'basic'},
+      detail: {
+        label: 'Detail', defaultValue: '',
+        showWhen: { and: [
+          {field: 'type', equals: 'alert'},
+          {field: 'mode', equals: 'advanced'},
+        ]},
+      },
+    };
+    const {wrapper} = mountForm(fields);
+    await nextTick();
+
+    const hasField = (label: string) => wrapper.html().includes(label);
+
+    // Only first matches → hidden
+    expect(hasField('Detail')).toBe(false);
+
+    const formComponent = wrapper.findComponent({name: 'Form'});
+    (formComponent.vm as any).states.mode = {value: 'advanced'};
+    await nextTick();
+    await nextTick();
+
+    // Both match → visible
+    expect(hasField('Detail')).toBe(true);
+
+    // Break one → hidden again
+    (formComponent.vm as any).states.type = {value: 'info'};
+    await nextTick();
+    await nextTick();
+    expect(hasField('Detail')).toBe(false);
+  });
+
+  it('supports { or: [...] } explicit OR for showWhen', async () => {
+    const fields: any = {
+      type: {label: 'Type', defaultValue: 'none'},
+      mode: {label: 'Mode', defaultValue: 'basic'},
+      detail: {
+        label: 'Detail', defaultValue: '',
+        showWhen: { or: [
+          {field: 'type', equals: 'alert'},
+          {field: 'mode', equals: 'advanced'},
+        ]},
+      },
+    };
+    const {wrapper} = mountForm(fields);
+    await nextTick();
+
+    const hasField = (label: string) => wrapper.html().includes(label);
+    expect(hasField('Detail')).toBe(false);
+
+    const formComponent = wrapper.findComponent({name: 'Form'});
+    (formComponent.vm as any).states.mode = {value: 'advanced'};
+    await nextTick();
+    await nextTick();
+    expect(hasField('Detail')).toBe(true);
+  });
+
+  it('supports nested and/or combinations', async () => {
+    const fields: any = {
+      type: {label: 'Type', defaultValue: 'business'},
+      region: {label: 'Region', defaultValue: 'EU'},
+      detail: {
+        label: 'Detail', defaultValue: '',
+        showWhen: { and: [
+          {field: 'type', equals: 'business'},
+          { or: [
+            {field: 'region', equals: 'JP'},
+            {field: 'region', equals: 'US'},
+          ]},
+        ]},
+      },
+    };
+    const {wrapper} = mountForm(fields);
+    await nextTick();
+
+    const hasField = (label: string) => wrapper.html().includes(label);
+    // type matches but region not in or-list → hidden
+    expect(hasField('Detail')).toBe(false);
+
+    const formComponent = wrapper.findComponent({name: 'Form'});
+    (formComponent.vm as any).states.region = {value: 'JP'};
+    await nextTick();
+    await nextTick();
+    expect(hasField('Detail')).toBe(true);
+
+    (formComponent.vm as any).states.type = {value: 'personal'};
+    await nextTick();
+    await nextTick();
+    // outer AND fails → hidden
+    expect(hasField('Detail')).toBe(false);
+  });
+
   it('supports includes match for showWhen/hideWhen', async () => {
     const fields: any = {
       keyword: {label: 'Keyword', defaultValue: 'hello world'},
