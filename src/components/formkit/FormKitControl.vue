@@ -162,10 +162,17 @@ const bindings = computed(() => {
     binds["class"] = "bk-w-full"
   }
 
-  // Special-case Date-like inputs: bind modelValue from current form state so initial Date shows up
+  // Special-case Date-like inputs: bind modelValue from current form state so initial Date shows up.
+  // name is dropped so neither DatePicker nor its inner InputText self-registers on the form —
+  // otherwise the InputText writes raw text into form state on every keystroke, and the field
+  // state already exists via FormKitField's <FormField :name>. Two-way sync goes through
+  // update:modelValue → setFieldValue as the single channel, so raw strings never reach state.
   const as = props.rest?.as;
   if (as === 'DatePicker' || as === 'Calendar') {
+    binds["name"] = undefined;
     binds["modelValue"] = currentValue.value ?? null;
+    binds["onUpdate:modelValue"] = (v: any) =>
+      $fcDynamicForm?.setFieldValue?.(name.value, v);
   }
 
   return binds
