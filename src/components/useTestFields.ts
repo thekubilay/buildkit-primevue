@@ -36,6 +36,21 @@ const useTestFields = () => {
       binary: true,
       colSpan: {desktop: 1, table: 1, mobile: 1}
     },
+    app_name: {
+      inputId: "app_name_id",
+      label: "アプリ",
+      as: "RadioButton",
+      defaultValue: "viterve",
+      schema: "required",
+      options: [
+        {label: "Viterve", value: "viterve"},
+        {label: "Reserve", value: "reserve"},
+        {label: "Booking", value: "booking"},
+      ],
+      optionLabel: "label",
+      optionValue: "value",
+      colSpan: {desktop: 1, table: 1, mobile: 1}
+    },
     help_text_type: {
       inputId: "help_text_type",
       label: "テキストタイプ",
