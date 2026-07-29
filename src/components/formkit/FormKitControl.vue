@@ -50,7 +50,7 @@ import InputIcon from "primevue/inputicon";
 import Editor from "primevue/editor";
 
 import * as PrimeVue from 'primevue';
-import {computed, inject, onUnmounted, ref, type PropType} from 'vue';
+import {computed, inject, onUnmounted, provide, ref, type PropType} from 'vue';
 import useZipcodeHelpers from "./useZipcodeHelpers.ts";
 
 const props = defineProps({
@@ -126,6 +126,18 @@ const buttonTypeClassActiveClass = computed(() => (val: any) => {
 })
 
 const restAs = computed(() => props.rest?.as)
+
+// DatePicker/Calendar render a full InputText internally. That InputText resolves its
+// $formName through the injected $pcFormField (FormKitField's <FormField :name>), so it
+// registers on the Form a second time even when we pass name: undefined. Two consequences:
+// its onInput/onChange write the raw DOM string into form state on every keystroke, and
+// once the field is emptied BaseEditableHolder's $formDefaultValue fallback reads the stale
+// Date back out of <Form :initial-values> and re-applies it — the field cannot be cleared in
+// edit mode. Shadowing the inject cuts that second registration (register(undefined) is a
+// no-op that adds no key to _states), leaving modelValue/update:modelValue as the single
+// channel. The field's own state still exists via FormKitField's <FormField :name>.
+const isDateLike = ["DatePicker", "Calendar"].includes(props.rest?.as)
+if (isDateLike) provide('$pcFormField', undefined)
 const options = computed(() => props.rest?.options || [])
 const hasOptions = computed(() => Array.isArray(options.value) && options.value.length > 0)
 
@@ -162,17 +174,19 @@ const bindings = computed(() => {
     binds["class"] = "bk-w-full"
   }
 
-  // Special-case Date-like inputs: bind modelValue from current form state so initial Date shows up.
-  // name is dropped so neither DatePicker nor its inner InputText self-registers on the form —
-  // otherwise the InputText writes raw text into form state on every keystroke, and the field
-  // state already exists via FormKitField's <FormField :name>. Two-way sync goes through
-  // update:modelValue → setFieldValue as the single channel, so raw strings never reach state.
-  const as = props.rest?.as;
-  if (as === 'DatePicker' || as === 'Calendar') {
+  // Special-case Date-like inputs: bind modelValue from current form state so the initial Date
+  // shows up, and push every change back through setFieldValue. Together with the shadowed
+  // $pcFormField inject above this is the only channel into form state, so raw input strings
+  // never leak into it. Because the inject is shadowed, BaseEditableHolder can no longer derive
+  // $invalid on its own — pass it explicitly so date fields keep their invalid styling.
+  if (isDateLike) {
     binds["name"] = undefined;
     binds["modelValue"] = currentValue.value ?? null;
     binds["onUpdate:modelValue"] = (v: any) =>
       $fcDynamicForm?.setFieldValue?.(name.value, v);
+    if (!("invalid" in (props.rest || {}))) {
+      binds["invalid"] = !!props.formApi?.getFieldState?.(name.value)?.invalid;
+    }
   }
 
   return binds
