@@ -23,6 +23,18 @@
   gap: 0.5rem; /* was gap-2 */
 }
 
+/* Separator (layout-only field) */
+.bk-separator {
+  width: 100%;
+}
+
+.bk-separator-label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--p-text-color);
+  white-space: nowrap;
+}
+
 /* Footer area */
 .bk-form-footer {
   width: 100%;

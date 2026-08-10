@@ -30,16 +30,6 @@
       "import": "./dist/index.mjs",
       "require": "./dist/index.cjs"
     },
-    "./FormKit": {
-      "types": "./types/FormKit.d.ts",
-      "import": "./dist/FormKit.mjs",
-      "require": "./dist/FormKit.cjs"
-    },
-    "./FormKitControl": {
-      "types": "./types/FormKitControl.d.ts",
-      "import": "./dist/FormKitControl.mjs",
-      "require": "./dist/FormKitControl.cjs"
-    },
     "./utils/setDynamicFields": {
       "types": "./types/index.d.ts",
       "import": "./dist/index.mjs",
@@ -86,6 +76,11 @@
     "preview": "vite preview",
     "test": "vitest run",
     "test:ui": "vitest",
+    "playground:install": "npm run build && npm --prefix playground install",
+    "playground": "npm run build && npm --prefix playground run dev",
+    "playground:build": "npm run build && npm --prefix playground run build",
+    "playground:verify": "npm run build && npm --prefix playground run verify",
+    "verify": "npm run test && npm run playground:verify && npm --prefix playground run build",
     "prepublishOnly": "npm run build"
   },
   "peerDependencies": {

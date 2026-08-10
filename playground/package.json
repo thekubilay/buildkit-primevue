@@ -1,0 +1,33 @@
+{
+  "name": "buildkit-primevue-playground",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "description": "Consumer-side playground: imports buildkit-primevue as an installed package, not from src/",
+  "scripts": {
+    "dev": "vite --host --port=3100",
+    "build": "vue-tsc -b && vite build",
+    "preview": "vite preview --port=3100",
+    "verify": "node scripts/verify-install.mjs && node scripts/verify-runtime.mjs"
+  },
+  "dependencies": {
+    "@primeuix/themes": "2.0.3",
+    "@primeuix/utils": "0.6.1",
+    "@primevue/forms": "4.3.9",
+    "@vueuse/core": "14.1.0",
+    "axios": "1.12.2",
+    "buildkit-primevue": "file:..",
+    "primevue": "4.4.0",
+    "quill": "2.0.3",
+    "vue": "3.5.22",
+    "zod": "4.1.11"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "6.0.1",
+    "@vue/tsconfig": "^0.7.0",
+    "jsdom": "^26.1.0",
+    "typescript": "~5.8.3",
+    "vite": "7.1.11",
+    "vue-tsc": "^3.0.5"
+  }
+}

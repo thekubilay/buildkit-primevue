@@ -11,13 +11,15 @@ A Vue 3 form component library wrapping PrimeVue v4 components with a declarativ
 3. [Basic Usage](#basic-usage)
 4. [Field Definition Schema](#field-definition-schema)
 5. [Supported PrimeVue Components](#supported-primevue-components)
-6. [Validation Rules](#validation-rules)
-7. [Visibility Conditions](#visibility-conditions)
-8. [Responsive Grid Layout](#responsive-grid-layout)
-9. [Type Casting](#type-casting)
-10. [Utility Functions](#utility-functions)
-11. [Locale Support](#locale-support)
-12. [Complete Examples](#complete-examples)
+6. [Separator Fields](#separator-fields)
+7. [Validation Rules](#validation-rules)
+8. [Visibility Conditions](#visibility-conditions)
+9. [Responsive Grid Layout](#responsive-grid-layout)
+10. [Type Casting](#type-casting)
+11. [Utility Functions](#utility-functions)
+12. [Locale Support](#locale-support)
+13. [Complete Examples](#complete-examples)
+14. [Playground](#playground)
 
 ---
 
@@ -31,18 +33,22 @@ npm install buildkit-primevue
 
 The following peer dependencies must be installed:
 
-| Package            | Version   |
-| ------------------ | --------- |
-| `vue`              | >=3.4     |
-| `primevue`         | ^4.4.0    |
-| `@primevue/forms`  | >=4.0.0   |
-| `@primevue/themes` | >=4.0.0   |
-| `@primeuix/themes` | ^2.0.3    |
-| `@primeuix/utils`  | >=0.0.1   |
-| `zod`              | 4.1.11    |
-| `axios`            | >=1.0.0   |
-| `@vueuse/core`     | ^14.1.0   |
-| `quill`            | ^2.0.3    |
+| Package            | Version   | Needed for                                     |
+| ------------------ | --------- | ---------------------------------------------- |
+| `vue`              | >=3.4     | Everything                                     |
+| `primevue`         | ^4.4.0    | Every rendered control                         |
+| `@primevue/forms`  | >=4.0.0   | `Form` / `FormField` — the form state engine   |
+| `@primevue/themes` | >=4.0.0   | Theming                                        |
+| `@primeuix/themes` | ^2.0.3    | Theming (Aura and friends)                     |
+| `@primeuix/utils`  | >=0.0.1   | PrimeVue internals                             |
+| `zod`              | 4.1.11    | Validation                                     |
+| `axios`            | >=1.0.0   | `as: "Zipcode"` lookup only                    |
+| `@vueuse/core`     | ^14.1.0   | `useResizeObserver` for the responsive grid    |
+| `quill`            | ^2.0.3    | `as: "Editor"` only                            |
+
+`package.json` also declares `@types/node`, `autoprefixer` and `postcss` as peer
+dependencies. These are build tooling, not runtime requirements — `playground/` installs
+and builds the library with `@types/node` and `autoprefixer` completely absent.
 
 ### Plugin Registration (Global)
 
@@ -56,7 +62,7 @@ app.use(BuildKitPrimeVue);
 app.mount("#app");
 ```
 
-This registers `FormKit`, `FormKitControl`, `FormKitField`, and `FormKitLabel` globally.
+This registers `FormKit`, `FormKitControl`, `FormKitField`, `FormKitLabel`, and `FormKitSeparator` globally.
 
 ---
 
@@ -77,6 +83,7 @@ import {
   FormKitControl,
   FormKitField,
   FormKitLabel,
+  FormKitSeparator,
 } from "buildkit-primevue";
 
 // Utility functions
@@ -87,6 +94,8 @@ import {
   clear,
   equals,
   includesMatch,
+  isSeparatorField,
+  SEPARATOR_TYPES,
 } from "buildkit-primevue";
 
 // Types
@@ -101,12 +110,16 @@ import type {
 ### Subpath Imports
 
 ```typescript
-import FormKit from "buildkit-primevue/FormKit";
 import { getPayload } from "buildkit-primevue/utils/getPayload";
 import { setFields } from "buildkit-primevue/utils/setFields";
 import { clear } from "buildkit-primevue/utils/clear";
 import { setDynamicFields } from "buildkit-primevue/utils/setDynamicFields";
 ```
+
+> The `buildkit-primevue/FormKit` and `buildkit-primevue/FormKitControl` subpaths were
+> removed: they pointed at bundle files the library build never emitted, so they threw
+> `ERR_MODULE_NOT_FOUND` on every install. Import both components from the package root
+> instead — `import { FormKit, FormKitControl } from "buildkit-primevue"`.
 
 ### Styles
 
@@ -172,14 +185,17 @@ Each field is defined as a key-value pair in a fields object. The key becomes th
 ```typescript
 interface FormKitField {
   label?: string;
-  required?: boolean;
+  inputId?: string;   // DOM id on the control + the label's `for` target
+  required?: boolean; // label marker only — `schema: "required"` is what enforces
   groupId?: string;
   messages?: string[];
   className?: string;
-  type?: string;
+  type?: string;              // also the border style for `as: "Separator"`
   as?: string;
+  align?: "left" | "center" | "right" | "top" | "bottom"; // Separator only
+  layout?: "horizontal" | "vertical";                     // Separator only
   defaultValue?: any;
-  colSpan: { mobile: number; tablet: number; desktop: number };
+  colSpan?: { mobile: number; tablet: number; desktop: number };
   style?: any;
   schema?: string;
   vertical?: boolean;
@@ -189,15 +205,21 @@ interface FormKitField {
   [key: string]: any; // Pass-through to PrimeVue component
 }
 
-interface VisibilityCondition {
+interface VisibilityLeaf {
   field: string;
   equals?: any;
   includes?: any | any[];
 }
 
+type VisibilityCondition =
+  | VisibilityLeaf
+  | { and: VisibilityCondition[] }
+  | { or: VisibilityCondition[] }
+  | VisibilityCondition[];
+
 interface FormKitProps {
   fields: Record<string, FormKitField>;
-  size?: string;
+  size?: "small" | "medium" | "large";
   locale?: "ja" | "en";
 }
 ```
@@ -207,14 +229,17 @@ interface FormKitProps {
 | Property       | Type                                          | Required | Description                                                       |
 | -------------- | --------------------------------------------- | -------- | ----------------------------------------------------------------- |
 | `label`        | `string`                                      | No       | Field label text                                                  |
-| `required`     | `boolean`                                     | No       | Whether the field is required (affects validation)                |
+| `inputId`      | `string`                                      | No       | DOM id for the control and the `for` target of its label — see [Label association](#label-association) |
+| `required`     | `boolean`                                     | No       | **Label marker only** — renders the red `*`. Does **not** validate; use `schema: "required"` for that |
 | `groupId`      | `string`                                      | No       | Optional group identifier                                        |
 | `messages`     | `string[]`                                    | No       | Custom error messages                                             |
 | `className`    | `string`                                      | No       | CSS class name                                                    |
-| `type`         | `string`                                      | No       | HTML input type (used for type coercion)                          |
-| `as`           | `string`                                      | No       | PrimeVue component name. Defaults to `InputText`                  |
+| `type`         | `string`                                      | No       | Value type hint (`"number"`, `"array"`). For `as: "Separator"` it is the border style |
+| `as`           | `string`                                      | No       | PrimeVue component name, or `"Separator"`. Defaults to `InputText` |
+| `align`        | `"left" \| "center" \| "right"`               | No       | **Separator only** — where the title sits (`"top" \| "center" \| "bottom"` when `layout: "vertical"`). Defaults to `center` |
+| `layout`       | `"horizontal" \| "vertical"`                  | No       | **Separator only** — rule orientation. Defaults to `horizontal`    |
 | `defaultValue` | `any`                                         | No       | Initial value for the field                                       |
-| `colSpan`      | `{ mobile, tablet, desktop }`                 | **Yes**  | Responsive column spanning (1-6 per breakpoint)                   |
+| `colSpan`      | `{ mobile, tablet, desktop }`                 | No       | Responsive column spanning (1-6 per breakpoint). Omit for full width |
 | `style`        | `any`                                         | No       | Inline styles object                                              |
 | `schema`       | `string`                                      | No       | Validation rules string (e.g., `"required\|max:100\|email"`)     |
 | `vertical`     | `boolean`                                     | No       | Stack items vertically (for CheckboxGroup, RadioButton)           |
@@ -270,11 +295,13 @@ Set via the `as` property. Defaults to `InputText` if not specified.
 | `RadioButton`    | Radio buttons     | `any`        | Single selection, requires `options`     |
 | `ToggleButton`   | Toggle button     | `boolean`    | Boolean toggle button                    |
 | `InputSwitch`    | Switch            | `boolean`    | Boolean switch                           |
+| `ToggleSwitch`   | Switch            | `boolean`    | PrimeVue v4 name for the same control    |
 | `Calendar`       | Calendar picker   | `Date`       | Date input                               |
 | `DatePicker`     | Date picker       | `Date`       | Date input                               |
 | `Zipcode`        | Zipcode input     | `string`     | Custom component with lookup icon        |
+| `Separator`      | Horizontal rule   | *(no value)* | Layout only — see [Separator Fields](#separator-fields) |
 
-Components are resolved dynamically from the PrimeVue namespace, so any PrimeVue component can theoretically be used by name.
+Components are resolved dynamically from the PrimeVue namespace, so any PrimeVue component can theoretically be used by name. `Separator` is the one exception: it is intercepted by FormKit before the lookup and never becomes an input.
 
 ### Field Definition Examples by Component
 
@@ -415,6 +442,80 @@ notifications: {
 
 ---
 
+## Separator Fields
+
+A separator is a **layout-only** entry in the same `fields` object. It draws a horizontal
+rule — optionally with a section title on it — and holds no value.
+
+```javascript
+const fields = {
+  section_profile: {
+    as: "Separator",
+    label: "Profile",     // omit for a plain rule with no title
+    align: "left",        // "left" | "center" (default) | "right"
+    type: "dashed",       // "solid" (default) | "dashed" | "dotted"
+  },
+  first_name: { label: "First name", defaultValue: "", colSpan: { mobile: 1, tablet: 1, desktop: 2 } },
+  last_name:  { label: "Last name",  defaultValue: "", colSpan: { mobile: 1, tablet: 1, desktop: 2 } },
+};
+```
+
+### Properties
+
+| Property  | Type                                | Default        | Description                                          |
+| --------- | ----------------------------------- | -------------- | ---------------------------------------------------- |
+| `as`      | `"Separator"`                       | —              | **Required.** Marks the entry as a separator          |
+| `label`   | `string`                            | *(none)*       | Title on the rule. Omit / leave blank for a bare line |
+| `align`   | `"left" \| "center" \| "right"`     | `"center"`     | Where the title sits. A vertical `layout` uses `"top" \| "center" \| "bottom"` instead |
+| `type`    | `"solid" \| "dashed" \| "dotted"`   | `"solid"`      | Border style                                          |
+| `layout`  | `"horizontal" \| "vertical"`        | `"horizontal"` | Rule orientation                                      |
+| `colSpan` | `{ mobile, tablet, desktop }`       | full width     | Same responsive grid rules as any other field         |
+
+`showWhen` / `hideWhen` work on separators exactly as they do on inputs, so a whole
+section heading can appear and disappear with its fields. `class` / `className` are
+applied to the rule, and any other property is forwarded to the underlying PrimeVue
+`Divider`.
+
+### What a separator is excluded from
+
+Because it holds no value, a separator is deliberately skipped everywhere a value would
+be expected:
+
+| Behaviour                    | Separator                                              |
+| ---------------------------- | ------------------------------------------------------ |
+| PrimeVue `Form` registration | Never registers — no `FormField` wrapper is rendered   |
+| `<Form :initial-values>`     | Excluded                                                |
+| Validation schema            | No Zod entry is generated, even with `schema`/`required` |
+| `@submit` event `states`     | Absent                                                  |
+| `getPayload(states, fields)` | Skipped                                                 |
+| `setFields(data, fields)`    | Skipped — no `defaultValue` is assigned                 |
+| `clear(data, fields)`        | Skipped                                                 |
+
+### Detecting separators in your own code
+
+```typescript
+import { isSeparatorField, SEPARATOR_TYPES } from "buildkit-primevue";
+
+const inputNames = Object.keys(fields).filter((k) => !isSeparatorField(fields[k]));
+
+SEPARATOR_TYPES; // ["Separator"]
+```
+
+> `as: "Divider"` is **not** treated as a separator. That name already resolved to
+> PrimeVue's `Divider` through the generic `as` lookup, so it keeps its old behaviour
+> and still renders inside a normal form field.
+
+### Rendering directly
+
+`FormKitSeparator` is exported and registered globally, so a rule can also be dropped
+into the `#start` / `#end` / `#footer` slots outside the field loop:
+
+```vue
+<FormKitSeparator label="Advanced" :rest="{ align: 'left', type: 'dashed' }" />
+```
+
+---
+
 ## Validation Rules
 
 Validation uses a string-based schema format parsed into Zod schemas. Rules are pipe-separated: `"rule1|rule2:param|rule3"`.
@@ -437,13 +538,63 @@ Validation uses a string-based schema format parsed into Zod schemas. Rules are 
 | `nospace`  | `nospace`           | No spaces allowed                                        | `"required\|nospace"`    |
 | `regex`    | `regex:pattern`     | Custom regex pattern                                     | `"regex:^[A-Z]+$"`      |
 
+### Label association
+
+`inputId` is applied whether or not the field declares an `as`, and always onto the
+element the user can actually focus. Which prop carries it is decided by asking the
+resolved component, not by a hard-coded list:
+
+| Component shape                                                     | Receives    | Label's `for` |
+| ------------------------------------------------------------------- | ----------- | ------------- |
+| Plain controls — `InputText`, `Textarea`, `Zipcode`                   | `id`        | ✅ points at it |
+| Wrapper controls that declare `inputId` — `Select`, `MultiSelect`, `DatePicker`, `InputNumber`, `Checkbox`, `RadioButton`, `ToggleSwitch`, `Password`, … | `inputId`   | ✅ points at it |
+| `Slider`, `Editor` — the id can only reach their outer wrapper        | `id` (wrapper) | ❌ omitted |
+| `CheckboxGroup`, and `RadioButton` **with** `options`                 | per-option ids | ❌ omitted on the group label; each option labels its own input |
+
+Where the id cannot reach a focusable control, the label is rendered **without** `for`
+rather than with one that dangles or points at a plain `<div>` — a `for` that focuses
+nothing is worse than none, because assistive tech announces the association as real.
+
+### `required: true` vs `schema: "required"`
+
+These are two independent knobs and it matters which one you reach for:
+
+| Config                | Red `*` on the label | Blocks submission |
+| --------------------- | -------------------- | ----------------- |
+| `required: true`      | ✅                    | ❌                 |
+| `schema: "required"`  | ❌                    | ✅                 |
+| both                  | ✅                    | ✅                 |
+
+`required` is a **presentation flag** — `FormKitLabel` renders the asterisk from it and
+nothing else reads it. It is also filtered out before pass-through, so it never lands on
+the input as the native HTML `required` attribute. Enforcement comes only from the
+`required` token inside `schema`. In practice you usually want both:
+`{ required: true, schema: "required|email" }`.
+
+⚠️ One consequence worth knowing: `Select` and `RadioButton` only get their
+**value-whitelist** check (submitted value must be one of `options`) when the schema marks
+them required. An optional Select resolves to `z.any().optional()` and will accept a value
+that is not in its `options` at all. If that check matters to you, add `required` to the
+schema string.
+
 ### Validation Behavior
 
+- ⚠️ **`schema` rules only apply when the schema also contains `required`.**
+  `useFormKitValidations.ts` gates the whole rule loop behind `if (field.schema && isRequired)`.
+  On an optional field, `schema: "number|length:10"` is parsed and then **silently ignored** —
+  the field validates as a plain optional string. To apply a format rule, add `required`
+  to the schema string.
+- **A missing value reads as "required"**, not as a type mismatch. An empty required
+  `InputNumber` says 必須項目です, not 数値を入力してください; that wording is reserved for a
+  value of genuinely the wrong type. This works across Zod 3 and Zod 4: Zod 3 named the
+  received type in `issue.received`, Zod 4 dropped that and carries the value as
+  `issue.input`, so both are read.
 - **Hidden fields skip validation** entirely (auto-replaced with `z.any().optional()`)
 - Validation is visibility-aware: runs only on visible fields
 - Arrays (MultiSelect, CheckboxGroup) validate `min`/`max` against item count
 - Error messages are available in Japanese (`ja`) and English (`en`)
 - Combine multiple rules: `"required|email|max:100"`
+- Separator fields get no schema entry at all, even if given `schema` or `required`
 
 ---
 
@@ -522,11 +673,15 @@ The `colSpan` property controls how many columns each field occupies across thre
 
 ### Breakpoints
 
-| Breakpoint | Container Width | Property |
-| ---------- | --------------- | -------- |
-| Mobile     | < 512px         | `mobile` |
-| Tablet     | 512px - 724px   | `tablet` |
-| Desktop    | > 724px         | `desktop`|
+| Breakpoint | Width                | Property |
+| ---------- | -------------------- | -------- |
+| Mobile     | `< 512`              | `mobile` |
+| Tablet     | `> 512` and `< 724`  | `tablet` |
+| Desktop    | everything else      | `desktop`|
+
+Both tablet comparisons are strict, so a width of exactly `512` or `724` falls through to
+`desktop`. Width is measured on `document.body` via `useResizeObserver`, not on the form's
+own container — the breakpoints follow the window, not the space the form sits in.
 
 ### Column Values (1-6)
 
@@ -566,9 +721,25 @@ The library automatically casts values based on the `as` component type. This ha
 | `Checkbox`, `ToggleButton`, `InputSwitch` | `"true"` / `"yes"` | `true`    |
 | `Checkbox`, `ToggleButton`, `InputSwitch` | `"false"` / `"no"` | `false`  |
 | `Calendar`, `DatePicker`           | `"2023-10-05T05:23:41.036132Z"` | `Date` object |
-| `MultiSelect`                      | `"a,b,c"`         | `["a","b","c"]` |
-| `MultiSelect`                      | `""`              | `[]`           |
+| `MultiSelect`, `CheckboxGroup`     | `"a,b,c"`         | `["a","b","c"]` |
+| `MultiSelect`, `CheckboxGroup`     | `""`              | `[]`           |
 | `InputText`, `Textarea`, `Select`  | any value         | Kept as-is     |
+| *(any component)*                  | `null` / `undefined` | `null`      |
+
+### Empty values on array-valued controls
+
+`MultiSelect` and `CheckboxGroup` hold arrays, but an empty value reaches them as `""` from
+several directions: `clear()` resets string state to it, and backend column configs handed
+to `setDynamicFields()` typically ship `defaultValue: ""` for every field regardless of the
+control. Two places cooperate so this does not surface as an error:
+
+- `castValue` coerces `""` to `[]` for both controls, so `setFields()` and `getPayload()`
+  produce the same array shape for each.
+- The validator coerces a blank string to "no value" before the array check, so an
+  **optional** MultiSelect/CheckboxGroup the user never touched does not report
+  「無効な入力です（配列が必要です）」 and behave as if it were required.
+
+A **required** array field still rejects a blank value.
 
 ---
 
@@ -751,7 +922,9 @@ const fields = {
     label: "Phone Number",
     defaultValue: "",
     colSpan: { mobile: 1, tablet: 2, desktop: 2 },
-    schema: "number|length:10",
+    // `required` is what activates the other rules — without it `number` and
+    // `length:10` are ignored. See "Validation Behavior" above.
+    schema: "required|number|length:10",
     placeholder: "0901234567",
   },
   category: {
@@ -910,14 +1083,17 @@ loadData();
 
 ```
 FormKit.vue (container - wraps @primevue/forms Form)
-  └─ FormKitField.vue (per-field wrapper with label/error display)
-       └─ FormKitControl.vue (dynamic renderer using :is="component")
-            └─ PrimeVue component (InputText, Select, DatePicker, etc.)
+  ├─ FormKitField.vue (per-field wrapper with label/error display)
+  │    └─ FormKitControl.vue (dynamic renderer using :is="component")
+  │         └─ PrimeVue component (InputText, Select, DatePicker, etc.)
+  └─ FormKitSeparator.vue (as: "Separator" — bypasses FormField entirely)
+       └─ PrimeVue Divider
 ```
 
 - `FormKit` manages the form state, visibility computation, and grid layout
 - `FormKitField` renders the label, field wrapper, and error messages
 - `FormKitControl` dynamically resolves and renders PrimeVue components, filtering out library-specific props before passing through to PrimeVue
+- `FormKitSeparator` renders a rule for layout-only fields. It is branched to *before* `FormKitField`, which is what keeps separators out of the form state
 
 ---
 
@@ -925,9 +1101,60 @@ FormKit.vue (container - wraps @primevue/forms Form)
 
 Custom styles use a `bk-` prefix:
 
-| Class       | Element                  |
-| ----------- | ------------------------ |
-| `.bk-form`  | Form container           |
-| `.bk-field` | Individual field wrapper |
+| Class                       | Element                                            |
+| --------------------------- | -------------------------------------------------- |
+| `.bk-form`                  | Form container (flex-wrap grid)                    |
+| `.bk-form-field-wrapper`    | Per-field wrapper that carries the `colSpan` width  |
+| `.bk-field`                 | Individual field wrapper                            |
+| `.bk-label`                 | Field label (`.bk-text-error` span for the `*`)     |
+| `.bk-form-footer`           | Footer slot area                                    |
+| `.bk-separator`             | Separator root (the PrimeVue `Divider`)             |
+| `.bk-separator-label`       | Separator title text                                |
+| `.bk-group` / `.bk-group--wrap` | CheckboxGroup / RadioButton container           |
+| `.bk-group-label`           | One option inside a checkbox group                  |
+| `.bk-radio-label`           | One option inside a radio group                     |
+| `.bk-button-option`         | Radio option with `buttonType: true`                |
+| `.bk-button-option--active` / `--inactive` | Selected state of a `buttonType` option |
+| `.bk-text-error` / `.bk-text-muted` | Error and help text                         |
 
 The library leverages PrimeVue CSS variables for theming. Import `buildkit-primevue/styles.css` for base styles.
+
+---
+
+## Playground
+
+`playground/` is a standalone consumer app that imports the library **the way an
+installed app does** — through `node_modules/buildkit-primevue` and the package
+`exports` map, never from `src/`. Use it to confirm a change survives packaging, not
+just unit tests.
+
+```bash
+npm run playground:install   # build the lib, then install playground deps (links via file:..)
+npm run playground           # build the lib, then start the playground on :3100
+npm run playground:verify    # build the lib, then run the install check
+npm run verify               # unit tests + install check + consumer build — the full gate
+```
+
+### What each check covers
+
+| Command                 | Catches                                                                    |
+| ----------------------- | -------------------------------------------------------------------------- |
+| `npm test`              | Behaviour, against `src/` — fast, but blind to packaging                    |
+| `npm run playground:verify` | `exports` subpaths pointing at files the build never emits, entries missing from `files`, subpaths Node cannot resolve, files absent from `npm pack` |
+| `npm run playground:build`  | Whether the **published type declarations** actually typecheck in a consumer, and whether the built bundle resolves |
+
+### Demos
+
+Each entry in the sidebar is one field-schema scenario, with the live submit payload,
+`getPayload()` output and field definitions shown next to the form:
+
+`Separator` · `Text inputs` · `Selection controls` · `Numbers & dates` ·
+`Validation` · `Conditional visibility` · `Responsive grid` · `Zipcode & Editor` ·
+`setDynamicFields` · `Kitchen sink`
+
+Demos live in `playground/src/demos/`. To add one, export a `Demo` object and register
+it in `playground/src/demos/index.ts`.
+
+> The playground reads the **built** library, so after changing `src/` run
+> `npm run build` (or just use `npm run playground`, which builds first) to see the
+> change.

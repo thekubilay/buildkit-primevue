@@ -10,6 +10,7 @@ import FormKit from './components/formkit/FormKit.vue';
 import FormKitControl from './components/formkit/FormKitControl.vue';
 import FormKitField from './components/formkit/FormKitField.vue';
 import FormKitLabel from './components/formkit/FormKitLabel.vue';
+import FormKitSeparator from './components/formkit/FormKitSeparator.vue';
 
 // Types
 export * from './components/formkit/types/FormKitProps';
@@ -20,6 +21,7 @@ export {setDynamicFields} from './components/formkit/utils/setDynamicFields';
 export {getPayload} from './components/formkit/utils/getPayload';
 export {setFields} from './components/formkit/utils/setFields';
 export {clear} from './components/formkit/utils/clear';
+export {isSeparatorField, SEPARATOR_TYPES} from './components/formkit/utils/isSeparator';
 
 // Named exports for components
 export {
@@ -27,6 +29,7 @@ export {
   FormKitControl,
   FormKitField,
   FormKitLabel,
+  FormKitSeparator,
   version,
 };
 
@@ -37,6 +40,7 @@ export const BuildKitPrimeVue = {
     app.component('FormKitControl', FormKitControl);
     app.component('FormKitField', FormKitField);
     app.component('FormKitLabel', FormKitLabel);
+    app.component('FormKitSeparator', FormKitSeparator);
   },
   version,
 } as Plugin & { version: string };

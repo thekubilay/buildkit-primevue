@@ -127,6 +127,37 @@ const buttonTypeClassActiveClass = computed(() => (val: any) => {
 
 const restAs = computed(() => props.rest?.as)
 
+// The component that actually receives `bindings`. Two template branches render a fixed
+// component rather than the one `as` resolves to, and both must be reflected here or the
+// id lands on the wrong prop.
+const boundComponent = computed(() => {
+  if (restAs.value === "Zipcode") return InputText;
+  if (restAs.value === "Editor") return Editor;
+  return component.value;
+})
+
+/**
+ * Does this component declare an `inputId` prop? PrimeVue builds its components with
+ * `extends`, so the prop can sit several levels up the chain — walk it. A resolved value
+ * that is just a string (an unresolved component name) has no props and answers false,
+ * which correctly falls back to a plain `id`.
+ */
+function acceptsInputIdProp(candidate: any): boolean {
+  const seen = new Set<any>();
+  let current = candidate;
+  while (current && typeof current === "object" && !seen.has(current)) {
+    seen.add(current);
+    const props = current.props;
+    if (Array.isArray(props)) {
+      if (props.includes("inputId")) return true;
+    } else if (props && Object.prototype.hasOwnProperty.call(props, "inputId")) {
+      return true;
+    }
+    current = current.extends || current.mixins?.[0];
+  }
+  return false;
+}
+
 // DatePicker/Calendar render a full InputText internally. That InputText resolves its
 // $formName through the injected $pcFormField (FormKitField's <FormField :name>), so it
 // registers on the Form a second time even when we pass name: undefined. Two consequences:
@@ -147,7 +178,13 @@ const PrimeRadioButton = (PrimeVue as any).RadioButton
 const bindings = computed(() => {
   const binds: any = {}
 
-  const disallowedProps = new Set(["defaultValue", "schema", "showWhen", "hideWhen", "colSpan", "zipcodeSearchIcon", "zipcodeLoadingIcon"]);
+  // `required` is a label marker, not a validation flag (see useFormKitValidations). If it
+  // reached the input it would land on the DOM as the native `required` attribute and the
+  // browser would block submission — reintroducing exactly the behaviour the flag is meant
+  // not to have. FormKit.vue already destructures it out of `rest`, but this component is
+  // exported and can be mounted directly, so it filters defensively too.
+  // `as` selects the component above; it is never an input prop itself.
+  const disallowedProps = new Set(["as", "defaultValue", "schema", "showWhen", "hideWhen", "colSpan", "zipcodeSearchIcon", "zipcodeLoadingIcon", "required"]);
 
   Object.keys(props.rest || {}).forEach(k => {
     if (disallowedProps.has(k)) {
@@ -157,17 +194,25 @@ const bindings = computed(() => {
     if (["class", "className"].includes(k)) {
       binds["class"] = props.rest[k];
     } else {
-      if (k === "as") {
-        if (props.rest?.as === "Checkbox") {
-          binds["inputId"] = props.inputId;
-        } else {
-          binds["id"] = props.inputId;
-        }
-      } else {
-        binds[k] = props.rest[k]
-      }
+      binds[k] = props.rest[k]
     }
   })
+
+  // The id must not depend on whether the caller wrote an explicit `as`. This used to be
+  // assigned inside the loop above under `k === "as"`, so a field relying on the default
+  // InputText — `{ label, inputId, defaultValue }` with no `as` — never received one, and
+  // the `for` attribute FormKitLabel emits pointed at nothing.
+  //
+  // Which prop to use is decided by asking the component, not by a hard-coded list.
+  // PrimeVue components that wrap their real control in a container (Select, MultiSelect,
+  // DatePicker, InputNumber, Checkbox, RadioButton, ToggleSwitch, Password, …) declare an
+  // `inputId` prop and bind it to the focusable element; a plain `id` would land on the
+  // wrapper instead and the label would point at something you cannot focus. Components
+  // without that prop (InputText, Textarea, Slider, Editor) take `id` directly.
+  if (props.inputId) {
+    if (acceptsInputIdProp(boundComponent.value)) binds["inputId"] = props.inputId;
+    else binds["id"] = props.inputId;
+  }
 
   // Ensure full width by default for most inputs
   if (!["Checkbox", "RadioButton", "CheckboxGroup"].includes(props.rest?.as)) {

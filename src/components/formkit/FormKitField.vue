@@ -70,10 +70,34 @@ const {
   formApi?: any;
 }>();
 
+// A `<label for>` is only honest when it names an element the user can actually focus.
+// Two shapes cannot satisfy that:
+//   - grouped inputs (CheckboxGroup, or RadioButton with options) render one control per
+//     option, each with its own id and its own label; the field-level id belongs to none
+//     of them, so `for` would dangle
+//   - Slider and Editor put our id on their outer wrapper — PrimeVue exposes no way to
+//     reach the inner handle / contenteditable — so `for` would point at a plain <div>
+// In both cases the label is left without `for` rather than pointing somewhere useless.
+const isGroupedControl = computed(() => {
+  const cfg = rest as any;
+  const hasOptions = Array.isArray(cfg?.options) && cfg.options.length > 0;
+  return hasOptions && ['CheckboxGroup', 'RadioButton'].includes(cfg?.as);
+});
+
+const idStaysOnWrapper = computed(() => ['Slider', 'Editor'].includes((rest as any)?.as));
+
+// Exposed through getters rather than as a snapshot: a field's `as`/`options` can change
+// in place after mount (setDynamicFields re-running, an async config load) without
+// FormKit remounting this component, since its v-for key is `inputId ?? name`. A snapshot
+// would leave `for` pointing at an id that no longer exists — the dangling association
+// this whole computation exists to prevent.
 provide('$fcDynamicFormField', {
-  name: name,
-  inputId: inputId,
-  required: required,
+  get name() { return name },
+  get inputId() { return inputId },
+  get required() { return required },
+  get labelFor() {
+    return (isGroupedControl.value || idStaysOnWrapper.value) ? undefined : inputId;
+  },
 });
 
 const $fcDynamicForm: any = inject('$fcDynamicForm', undefined) ?? formApi;

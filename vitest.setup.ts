@@ -12,17 +12,47 @@ config.global.stubs = {
 import { vi } from 'vitest';
 
 // Stub directly-imported PrimeVue components that require the $primevue plugin context
-const stubComponent = (name: string) => ({
-  default: { name, template: `<input :name="name" />`, props: ['name', 'modelValue', 'size', 'id', 'inputId', 'class'] }
-});
+// Real PrimeVue splits into two shapes, and FormKitControl picks `id` vs `inputId` by
+// asking the component which props it declares. The stubs must mirror that or the tests
+// would validate a choice the production components never make:
+//
+//   - plain controls (InputText, Textarea, Slider) take `id` straight on the element
+//   - wrapper controls (Select, DatePicker, Checkbox, …) declare `inputId` and put it on
+//     the focusable element inside their wrapper; a bare `id` would land on the wrapper
+const INPUT_ID_COMPONENTS = new Set([
+  'Checkbox', 'RadioButton', 'Select', 'MultiSelect', 'DatePicker', 'InputNumber', 'ToggleSwitch', 'Password',
+]);
+
+const baseProps = ['name', 'modelValue', 'size', 'class', 'value'];
+
+const makeStub = (name: string) => INPUT_ID_COMPONENTS.has(name)
+  ? {
+      name,
+      template: `<div class="p-wrapper"><input :name="name" :id="inputId" /></div>`,
+      props: [...baseProps, 'inputId'],
+    }
+  : {
+      name,
+      template: `<input :name="name" :id="id" />`,
+      props: [...baseProps, 'id'],
+    };
+
+const stubComponent = (name: string) => ({ default: makeStub(name) });
 
 vi.mock('primevue/inputtext', () => stubComponent('InputText'));
 vi.mock('primevue/iconfield', () => ({ default: { name: 'IconField', template: '<div><slot/></div>' } }));
 vi.mock('primevue/inputicon', () => ({ default: { name: 'InputIcon', template: '<span/>' } }));
 vi.mock('primevue/editor', () => ({ default: { name: 'Editor', template: '<div/>' } }));
+vi.mock('primevue/divider', () => ({
+  default: {
+    name: 'Divider',
+    template: '<div class="p-divider" role="separator" :data-align="align" :data-type="type" :data-layout="layout"><div v-if="$slots.default" class="p-divider-content"><slot/></div></div>',
+    props: ['align', 'type', 'layout']
+  }
+}));
 
 // Mock the barrel import used by FormKitControl for dynamic component resolution
-const simpleStub = (name: string) => ({ name, template: `<input :name="name" />`, props: ['name', 'modelValue', 'size', 'id', 'inputId', 'class', 'value'] });
+const simpleStub = makeStub;
 vi.mock('primevue', () => ({
   InputText: simpleStub('InputText'),
   Checkbox: simpleStub('Checkbox'),
@@ -33,6 +63,10 @@ vi.mock('primevue', () => ({
   InputNumber: simpleStub('InputNumber'),
   Textarea: simpleStub('Textarea'),
   ToggleSwitch: simpleStub('ToggleSwitch'),
+  Password: simpleStub('Password'),
+  // Slider wraps its focusable handle, so the plain `id` lands on the outer element —
+  // mirrored here because FormKitField relies on that to drop the label's `for`.
+  Slider: { name: 'Slider', template: '<div class="p-slider" :id="id"><span role="slider" tabindex="0"/></div>', props: [...['name', 'modelValue', 'size', 'class', 'value'], 'id'] },
 }));
 
 vi.mock('@primevue/forms/form', () => ({

@@ -11,9 +11,12 @@ buildkit-primevue is a Vue 3 form component library that wraps PrimeVue v4 compo
 - **Dev server:** `npm run dev` (Vite on port 3000)
 - **Build:** `npm run build` (tsc + Vite library build → `dist/`)
 - **Run all tests:** `npm test` (Vitest, one-shot)
-- **Test UI:** `npm run test:ui` (Vitest interactive UI)
+- **Watch tests:** `npm run test:ui` (plain `vitest` watch mode — despite the name there is no `--ui` flag and `@vitest/ui` is not installed)
 - **Run a single test file:** `npx vitest run tests/formkit.visibility.test.ts`
 - **Run tests matching a pattern:** `npx vitest run -t "pattern"`
+- **Playground (consumer app):** `npm run playground` (builds the lib, serves `playground/` on port 3100)
+- **Install/packaging check:** `npm run playground:verify`
+- **Full gate:** `npm run verify` (tests + install check + consumer build)
 
 ## Architecture
 
@@ -21,12 +24,16 @@ buildkit-primevue is a Vue 3 form component library that wraps PrimeVue v4 compo
 
 ```
 FormKit.vue (container — wraps @primevue/forms Form)
-  └─ FormKitField.vue (per-field wrapper with label/error)
-       └─ FormKitControl.vue (dynamic renderer using :is="component")
-            └─ PrimeVue component (InputText, Select, DatePicker, etc.)
+  ├─ FormKitField.vue (per-field wrapper with label/error)
+  │    └─ FormKitControl.vue (dynamic renderer using :is="component")
+  │         └─ PrimeVue component (InputText, Select, DatePicker, etc.)
+  └─ FormKitSeparator.vue (as: "Separator" — bypasses FormField)
+       └─ PrimeVue Divider
 ```
 
 `FormKitControl` dynamically resolves and renders PrimeVue components based on the `as` prop in each field definition. Library-specific props are filtered out before pass-through to PrimeVue.
+
+**Separator fields** (`src/components/formkit/utils/isSeparator.ts`): `as: "Separator"` marks a layout-only entry. `FormKit.vue` branches to `FormKitSeparator` before `FormKitField`, so it never registers on the Form — and it is skipped in `initialValues`, the Zod schema, `getPayload`, `setFields` and `clear`. Any new code that iterates `fields` and expects a value must guard with `isSeparatorField()`.
 
 ### Key Systems
 
@@ -61,6 +68,8 @@ Vite library mode produces `dist/index.mjs` (ESM), `dist/index.cjs` (CJS), and `
 ### Testing
 
 Tests live in `tests/` and use Vitest with jsdom. PrimeVue form components are mocked in `vitest.setup.ts` to avoid heavy rendering. Test files follow `*.test.ts` naming.
+
+Unit tests run against `src/` and therefore cannot see packaging problems. `playground/` is a separate consumer app that imports the library through `node_modules/buildkit-primevue` and the `exports` map; `playground/scripts/verify-install.mjs` checks that every `exports` subpath resolves, ships in `files`, and lands in `npm pack`. Run `npm run verify` before publishing.
 
 ### Styling
 

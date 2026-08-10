@@ -1,0 +1,83 @@
+import type {Demo} from './types'
+
+const half = {mobile: 1, tablet: 1, desktop: 2}
+
+export const numbersDatesDemo: Demo = {
+  id: 'numbers-dates',
+  title: 'Numbers & dates',
+  summary: 'InputNumber, Slider and DatePicker, including the clearable-in-edit-mode case.',
+  checks: [
+    'InputNumber coerces string input to a real number before validation.',
+    'DatePicker receives an ISO string from setFields() and shows it as a Date.',
+    'Clearing a pre-filled DatePicker must stay cleared — it must not snap back to the initial date.',
+    'showTime / timeOnly pickers pass their PrimeVue props straight through.',
+  ],
+  fields: () => ({
+    quantity: {
+      inputId: 'num_quantity',
+      label: 'InputNumber',
+      as: 'InputNumber',
+      min: 0,
+      max: 100,
+      showButtons: true,
+      defaultValue: null,
+      colSpan: half,
+    },
+    price: {
+      inputId: 'num_price',
+      label: 'InputNumber (currency)',
+      as: 'InputNumber',
+      mode: 'currency',
+      currency: 'JPY',
+      locale: 'ja-JP',
+      defaultValue: null,
+      colSpan: half,
+    },
+    volume: {
+      inputId: 'num_volume',
+      label: 'Slider',
+      as: 'Slider',
+      min: 0,
+      max: 100,
+      defaultValue: 40,
+      colSpan: half,
+    },
+    starts_at: {
+      inputId: 'date_starts_at',
+      label: 'DatePicker',
+      as: 'DatePicker',
+      dateFormat: 'yy/mm/dd',
+      showIcon: true,
+      showButtonBar: true,
+      defaultValue: null,
+      help: 'Load the sample data, then clear this field — it must stay empty.',
+      colSpan: half,
+    },
+    ends_at: {
+      inputId: 'date_ends_at',
+      label: 'DatePicker (with time)',
+      as: 'DatePicker',
+      showTime: true,
+      hourFormat: '24',
+      showIcon: true,
+      defaultValue: null,
+      colSpan: half,
+    },
+    slot_time: {
+      inputId: 'date_slot_time',
+      label: 'DatePicker (time only)',
+      as: 'DatePicker',
+      timeOnly: true,
+      defaultValue: null,
+      colSpan: half,
+    },
+  }),
+  sampleData: {
+    quantity: '12',
+    price: 4800,
+    volume: 75,
+    starts_at: '2026-02-27T15:00:00Z',
+    ends_at: '2026-03-05T09:30:00Z',
+    slot_time: null,
+  },
+}

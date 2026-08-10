@@ -12,6 +12,7 @@ type CastComponent =
   | 'Chips'
   | 'Select'
   | 'MultiSelect'
+  | 'CheckboxGroup'
   | 'InputNumber'
   | 'Slider'
   | 'Checkbox'
@@ -29,7 +30,7 @@ type CastComponent =
  *   - Boolean casting only for boolean-like components (Checkbox, ToggleButton, InputSwitch)
  *   - Date casting only for date-like components (Calendar, DatePicker)
  *   - Text-like components (InputText, Textarea, Editor, Password, Chips, Select) keep string values
- *   - MultiSelect handles array conversion from comma-separated strings
+ *   - MultiSelect and CheckboxGroup handle array conversion from comma-separated strings
  * - When `as` is omitted, falls back to legacy auto-casting behavior for backward compatibility
  * @param value - The value to cast
  * @param as - Optional PrimeVue component name (from fields.as) to guide casting
@@ -49,10 +50,13 @@ function castValue(value: unknown, as?: CastComponent): string | boolean | numbe
   const isBooleanLike = as ? ['Checkbox', 'ToggleButton', 'InputSwitch'].includes(as) : undefined;
   const isDateLike = as ? ['Calendar', 'DatePicker'].includes(as) : undefined;
   // const isTextLike = as ? ['InputText', 'Textarea', 'Editor', 'Password', 'Chips', 'Select'].includes(as) : undefined;
-  const isMultiSelect = as === 'MultiSelect';
+  // Array-valued controls. Must stay in step with the array branch of createDynamicSchema
+  // in useFormKitValidations: a value that casts to a string here but is validated as an
+  // array there would submit as "" while its MultiSelect sibling submits [].
+  const isArrayLike = as === 'MultiSelect' || as === 'CheckboxGroup';
 
-  // Special handling for MultiSelect
-  if (isMultiSelect) {
+  // Special handling for array-valued controls
+  if (isArrayLike) {
 
     if (value === "") {
       return []

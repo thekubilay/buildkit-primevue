@@ -1,0 +1,237 @@
+/* Playground chrome only. Nothing here styles the library itself — the form is
+   rendered with the library's own bk- classes plus the PrimeVue Aura preset, so
+   what you see is what a consumer app gets. */
+
+:root {
+  --pg-bg: var(--p-content-background, #fff);
+  --pg-border: var(--p-content-border-color, #e5e7eb);
+  --pg-muted: var(--p-text-muted-color, #6b7280);
+  --pg-text: var(--p-text-color, #111827);
+  color-scheme: light dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  color: var(--pg-text);
+  background: var(--p-surface-50, #f8fafc);
+}
+
+.pg-shell {
+  display: flex;
+  min-height: 100vh;
+  align-items: stretch;
+}
+
+/* ---------- nav ---------- */
+
+.pg-nav {
+  width: 250px;
+  flex: 0 0 250px;
+  border-right: 1px solid var(--pg-border);
+  background: var(--pg-bg);
+  padding: 1rem;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+}
+
+.pg-nav__brand {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.pg-nav__note {
+  font-size: 0.75rem;
+  line-height: 1.5;
+  color: var(--pg-muted);
+  margin: 0 0 1rem;
+}
+
+.pg-nav__note code {
+  font-size: 0.7rem;
+}
+
+.pg-nav nav {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
+.pg-nav__item {
+  text-align: left;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 0.875rem;
+  padding: 0.5rem 0.625rem;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.pg-nav__item:hover {
+  background: var(--p-surface-100, #f1f5f9);
+}
+
+.pg-nav__item.is-active {
+  background: var(--p-primary-color, #10b981);
+  color: var(--p-primary-contrast-color, #fff);
+}
+
+/* ---------- main ---------- */
+
+.pg-main {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 1.5rem;
+}
+
+.pg-demo__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.pg-demo__head h2 {
+  margin: 0 0 0.25rem;
+  font-size: 1.25rem;
+}
+
+.pg-demo__opts {
+  display: flex;
+  gap: 0.75rem;
+  font-size: 0.75rem;
+  color: var(--pg-muted);
+}
+
+.pg-demo__opts label {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.pg-demo__opts select {
+  font: inherit;
+  padding: 0.125rem 0.25rem;
+  border-radius: 4px;
+  border: 1px solid var(--pg-border);
+  background: var(--pg-bg);
+  color: inherit;
+}
+
+.pg-muted {
+  color: var(--pg-muted);
+  margin: 0;
+  font-size: 0.875rem;
+}
+
+.pg-checks {
+  margin: 0.75rem 0 0;
+  padding-left: 1.1rem;
+  font-size: 0.8125rem;
+  color: var(--pg-muted);
+  line-height: 1.6;
+}
+
+.pg-demo__body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 26rem);
+  gap: 1rem;
+  align-items: start;
+  margin-top: 1rem;
+}
+
+@media (max-width: 1100px) {
+  .pg-demo__body {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.pg-card {
+  background: var(--pg-bg);
+  border: 1px solid var(--pg-border);
+  border-radius: 10px;
+  padding: 1.25rem;
+  min-width: 0;
+}
+
+.pg-card--panels {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1rem;
+}
+
+.pg-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  width: 100%;
+  padding-top: 0.5rem;
+}
+
+/* ---------- json panels ---------- */
+
+.pg-panel__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.375rem;
+}
+
+.pg-panel__head h3 {
+  margin: 0;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--pg-muted);
+}
+
+.pg-json {
+  margin: 0;
+  max-height: 18rem;
+  overflow: auto;
+  font-size: 0.75rem;
+  line-height: 1.5;
+  background: var(--p-surface-100, #f1f5f9);
+  border-radius: 6px;
+  padding: 0.625rem 0.75rem;
+}
+
+.pg-badge {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  padding: 0.0625rem 0.375rem;
+  border-radius: 999px;
+  border: 1px solid transparent;
+}
+
+.pg-badge--ok {
+  background: var(--p-green-50, #ecfdf5);
+  color: var(--p-green-700, #047857);
+  border-color: var(--p-green-200, #a7f3d0);
+}
+
+.pg-badge--warn {
+  background: var(--p-yellow-50, #fefce8);
+  color: var(--p-yellow-700, #a16207);
+  border-color: var(--p-yellow-200, #fef08a);
+}
+
+.pg-badge--error {
+  background: var(--p-red-50, #fef2f2);
+  color: var(--p-red-700, #b91c1c);
+  border-color: var(--p-red-200, #fecaca);
+}

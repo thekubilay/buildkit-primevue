@@ -1,3 +1,5 @@
+import {isSeparatorField} from "./isSeparator.ts";
+
 const castNextValue = (value: any) => {
   if (typeof value === "string") {
     return ""
@@ -19,6 +21,9 @@ export function clear(data: any, fields: any): void {
   }
 
   Object.keys(fields).forEach(key => {
+    // Separators hold no value, so there is nothing to reset
+    if (isSeparatorField(fields[key])) return;
+
     fields[key].defaultValue = castNextValue(data[key])
   })
 

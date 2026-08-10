@@ -10,7 +10,10 @@
           class="bk-form-field-wrapper"
           :style="styleColumnSpan(colSpan)"
         >
-          <FormKitField :name="name" :input-id="inputId" :required="required" :label="label" :help="help" :rest="rest" :form-api="$form">
+          <!-- Layout-only field: no FormField wrapper, so it never registers on the Form -->
+          <FormKitSeparator v-if="isSeparatorField(rest)" :label="label" :rest="rest"/>
+
+          <FormKitField v-else :name="name" :input-id="inputId" :required="required" :label="label" :help="help" :rest="rest" :form-api="$form">
             <component :is="FormKitControl" :label="label" :input-id="inputId" :rest="rest" :size="size" :form-api="model"/>
           </FormKitField>
         </div>
@@ -30,10 +33,12 @@ import Form from "@primevue/forms/form";
 
 import FormKitField from "./FormKitField.vue";
 import FormKitControl from "./FormKitControl.vue";
+import FormKitSeparator from "./FormKitSeparator.vue";
 
 
 import {computed, provide, ref, watch, reactive} from "vue";
 import {equals, includesMatch} from "./utils/visibility.ts";
+import {isSeparatorField} from "./utils/isSeparator.ts";
 import {useResizeObserver} from "@vueuse/core";
 import type {FormKitProps} from "./types/FormKitProps.ts";
 
@@ -208,6 +213,7 @@ watch(
     // Collect all current values
     const values: Record<string, any> = {};
     Object.keys(fields).forEach(fieldName => {
+      if (isSeparatorField((fields as any)[fieldName])) return;
       try {
         const state = api?.getFieldState ? api.getFieldState(fieldName) : api?.states?.[fieldName];
         values[fieldName] = state?.value;
@@ -231,18 +237,22 @@ watch(
 
 // Initialize formValues with default values
 Object.entries(fields as any).forEach(([fieldName, cfg]: [string, any]) => {
+  if (isSeparatorField(cfg)) return;
   formValues[fieldName] = cfg?.defaultValue;
 });
 
 const initialValues = computed<any>(() => {
   const obj: { [key: string]: any } = {};
   Object.keys(fields).forEach(key => {
+    // Separators are layout-only, keeping them out of initial values keeps them
+    // out of the Form's state (and therefore out of the submit payload).
+    if (isSeparatorField((fields as any)[key])) return;
     obj[key] = (fields as any)[key]?.defaultValue
   })
   return obj;
 })
 
-const styleColumnSpan = computed(() => (span: { mobile: number, tablet: number, desktop: number }) => {
+const styleColumnSpan = computed(() => (span?: { mobile: number, tablet: number, desktop: number }) => {
 
   let value = ""
   let device: "desktop" | "tablet" | "mobile" = "desktop"

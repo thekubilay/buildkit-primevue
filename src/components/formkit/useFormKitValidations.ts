@@ -2,18 +2,55 @@ import {zodResolver} from "@primevue/forms/resolvers/zod";
 import {z} from "zod";
 import type {FormKitProps} from "./types/FormKitProps.ts";
 import {equals, includesMatch} from "./utils/visibility.ts";
+import {isSeparatorField} from "./utils/isSeparator.ts";
 import {messages, type Locale, type LocaleMessages} from "./locales/messages.ts";
 
 const useFormKitValidations = (fields?: FormKitProps['fields'], locale: Locale = "ja") => {
 
   const m: LocaleMessages = messages[locale];
 
+  /**
+   * Name the type Zod actually received, across Zod 3 and Zod 4.
+   *
+   * Zod 3 put the type name on `issue.received`. Zod 4 dropped that field and carries the
+   * offending value itself as `issue.input` instead (verified: an invalid_type issue has
+   * exactly `["expected", "code", "input", "inst"]`). Reading only `received` left the
+   * missing-value branch dead on Zod 4, so every empty required field reported a type
+   * mismatch — 「無効な入力です（〇〇が必要です）」 — instead of "this field is required".
+   *
+   * `input` is checked with `in` rather than truthiness because a missing value IS
+   * `undefined`, which is precisely the case that matters here.
+   */
+  const receivedTypeOf = (issue: any): string | undefined => {
+    if (typeof issue?.received === 'string') return issue.received;
+    if (issue && 'input' in issue) {
+      if (issue.input === null) return 'null';
+      if (issue.input === undefined) return 'undefined';
+      return typeof issue.input;
+    }
+    return undefined;
+  };
+
+  const isMissing = (issue: any): boolean => {
+    const received = receivedTypeOf(issue);
+    return received === 'null' || received === 'undefined';
+  };
+
+  /**
+   * Inline schema messages win over the error map, so a branch that hard-codes one (the
+   * number and date branches below) would report "enter a number" for a field the user
+   * simply left blank. Passing a function instead lets those branches fall back to the
+   * required message when nothing was entered, and keep their specific wording otherwise.
+   */
+  const typeMessage = (whenWrongType: string) => (issue: any) =>
+    isMissing(issue) ? m.required : whenWrongType;
+
   // Create a custom error map that doesn't affect the global Zod state
   const createCustomErrorMap = () => {
     return (issue: any, ctx: any) => {
       if (issue.code === 'invalid_type') {
         // If a value is missing/null, show a required-style message
-        if ((issue.received as any) === 'null' || (issue.received as any) === 'undefined') {
+        if (isMissing(issue)) {
           return {message: m.required};
         }
         const expected = m.typeLabels[(issue as any).expected as keyof typeof m.typeLabels] || (issue as any).expected;
@@ -22,17 +59,22 @@ const useFormKitValidations = (fields?: FormKitProps['fields'], locale: Locale =
 
       // Add specific handling for union validation errors
       if (issue.code === 'invalid_union') {
-        return {message: m.invalidUnion};
+        return {message: isMissing(issue) ? m.required : m.invalidUnion};
       }
 
       // Handle invalid literal (for Select fields)
       if (issue.code === 'invalid_literal') {
-        return {message: m.invalidLiteral};
+        return {message: isMissing(issue) ? m.required : m.invalidLiteral};
       }
 
       // Handle invalid enum
       if (issue.code === 'invalid_enum_value') {
-        return {message: m.invalidEnum};
+        return {message: isMissing(issue) ? m.required : m.invalidEnum};
+      }
+
+      // Zod 4 renamed the enum/literal mismatch codes; keep both spellings working.
+      if (issue.code === 'invalid_value' || issue.code === 'invalid_option') {
+        return {message: isMissing(issue) ? m.required : m.invalidEnum};
       }
 
       // Fallback to a context default or generic message
@@ -186,9 +228,17 @@ const useFormKitValidations = (fields?: FormKitProps['fields'], locale: Locale =
     if (allStrings && validValues.length > 0) {
       // Use z.enum for string values - this is more reliable across Zod instances
       //@ts-ignore
+      // Zod 3 reads `errorMap`, Zod 4 reads `error` — supply both so the message is not
+      // silently dropped, and report a blank value as missing rather than as a bad choice.
+      const enumMessage = (issue: any) => {
+        const value = issue && 'input' in issue ? issue.input : undefined;
+        const empty = value === null || value === undefined || value === '';
+        return empty ? m.required : m.selectInvalid;
+      };
       return z.enum(validValues as [string, ...string[]], {
-        errorMap: () => ({message: m.selectInvalid})
-      });
+        errorMap: (issue: any) => ({message: enumMessage(issue)}),
+        error: enumMessage,
+      } as any);
     }
 
     // Check if all values are numbers
@@ -197,7 +247,10 @@ const useFormKitValidations = (fields?: FormKitProps['fields'], locale: Locale =
     if (allNumbers && validValues.length > 0) {
       // For numbers, use z.union of literals with coercion
       const numberSchema = z.preprocess((v: any) => {
-        if (typeof v === 'string' && v !== '') {
+        // A cleared Select hands back "", which is "nothing selected", not "not a number".
+        // Mapping it to undefined lets the error map report it as missing.
+        if (typeof v === 'string' && v.trim() === '') return undefined;
+        if (typeof v === 'string') {
           const parsed = Number(v);
           return isNaN(parsed) ? v : parsed;
         }
@@ -216,6 +269,8 @@ const useFormKitValidations = (fields?: FormKitProps['fields'], locale: Locale =
     if (allBooleans && validValues.length > 0) {
       // For booleans, use z.union of literals with coercion
       const booleanSchema = z.preprocess((v: any) => {
+        // As above: "" means nothing was selected, not "not a boolean".
+        if (typeof v === 'string' && v.trim() === '') return undefined;
         if (typeof v === 'string') {
           if (v === 'true') return true;
           if (v === 'false') return false;
@@ -266,7 +321,17 @@ const useFormKitValidations = (fields?: FormKitProps['fields'], locale: Locale =
           return false;
         });
       },
-      {message: isRequired ? m.selectInvalid : m.selectRequired}
+      // Unlike the enum / number / boolean branches above, nothing type-checks the value
+      // before this refine runs, so a blank field reaches it and would be reported as an
+      // invalid choice. Distinguish "nothing entered" from "not one of the options".
+      {
+        error: (issue: any) => {
+          const value = 'input' in issue ? issue.input : undefined;
+          const empty = value === null || value === undefined || value === '';
+          if (empty) return m.required;
+          return isRequired ? m.selectInvalid : m.selectRequired;
+        },
+      } as any
     );
   };
 
@@ -327,6 +392,9 @@ const useFormKitValidations = (fields?: FormKitProps['fields'], locale: Locale =
     Object.keys(fields).forEach(fieldName => {
       const field = fields[fieldName];
 
+      // Separators hold no value, so they get no schema entry at all
+      if (isSeparatorField(field)) return;
+
       // If this field should skip validation entirely (e.g., it's hidden), use z.any().optional()
       if (skipValidationForFields?.has(fieldName)) {
         schemaObject[fieldName] = z.any().optional();
@@ -335,11 +403,20 @@ const useFormKitValidations = (fields?: FormKitProps['fields'], locale: Locale =
 
       let fieldSchema: z.ZodType = z.string();
 
-      // Parse schema string to determine if field is required
-      let isRequired = field.required || false;
+      // Array-valued controls need an empty-string escape hatch, see below.
+      const isArrayLike = field.type === 'array' || field.as === 'MultiSelect'
+        || field.as === 'CheckboxGroup' || Array.isArray(field.defaultValue);
+
+      // Only the schema string decides whether a field is required. `field.required` is
+      // the label marker — it renders the `*` via FormKitLabel and nothing else. It used
+      // to feed this flag too, which silently made a field genuinely required in 7 of 10
+      // component types (InputText, Textarea, the bare default, InputNumber, DatePicker,
+      // Select, RadioButton) while doing nothing for Checkbox, MultiSelect and
+      // CheckboxGroup — so the same config enforced or not depending on `as`.
+      let isRequired = false;
       if (field.schema) {
         const rules = parseSchemaString(field.schema);
-        isRequired = isRequired || rules.some(({rule}) => rule === 'required');
+        isRequired = rules.some(({rule}) => rule === 'required');
       }
 
       // Start with a base type based on field configuration
@@ -353,8 +430,8 @@ const useFormKitValidations = (fields?: FormKitProps['fields'], locale: Locale =
           }
           return v;
         }, z.number({
-          message: m.numberInput
-        }));
+          error: typeMessage(m.numberInput)
+        } as any));
 
         if (isRequired) {
           fieldSchema = numberCoerce;
@@ -371,7 +448,7 @@ const useFormKitValidations = (fields?: FormKitProps['fields'], locale: Locale =
               return v;
             },
             z.union([
-              z.number({message: m.numberInput}),
+              z.number({error: typeMessage(m.numberInput)} as any),
               z.undefined(),
               z.null(),
             ])
@@ -399,15 +476,15 @@ const useFormKitValidations = (fields?: FormKitProps['fields'], locale: Locale =
           }
           return v;
         }, z.date({
-          message: m.dateInput
-        }));
+          error: typeMessage(m.dateInput)
+        } as any));
 
         if (isRequired) {
           fieldSchema = dateCoerce;
         } else {
           fieldSchema = dateCoerce.optional().nullable();
         }
-      } else if (field.type === 'array' || field.as === 'MultiSelect' || field.as === 'CheckboxGroup' || Array.isArray(field.defaultValue)) {
+      } else if (isArrayLike) {
         // For array-like fields (e.g., MultiSelect), allow null/undefined when not required
         if (isRequired) {
           fieldSchema = z.array(z.any());
@@ -503,6 +580,22 @@ const useFormKitValidations = (fields?: FormKitProps['fields'], locale: Locale =
         });
       }
 
+      // An empty string is this library's generic "no value": castValue returns it for a
+      // blank CheckboxGroup, clear() resets string state to it, and backend column configs
+      // ship `defaultValue: ""` for every field type regardless of the control. Without
+      // this, a MultiSelect or CheckboxGroup that the user never touched fails the array
+      // type check and reports 「無効な入力です（配列が必要です）」 — an optional field that
+      // behaves as if it were required.
+      //
+      // Applied AFTER the schema-string rules so the loop above still sees a real ZodArray
+      // and its isZodArray() branch keeps applying min/max/required.
+      if (isArrayLike) {
+        fieldSchema = z.preprocess(
+          (v: any) => (typeof v === 'string' && v.trim() === '' ? undefined : v),
+          fieldSchema,
+        );
+      }
+
       schemaObject[fieldName] = fieldSchema;
     });
 
@@ -548,6 +641,17 @@ const useFormKitValidations = (fields?: FormKitProps['fields'], locale: Locale =
     return visible;
   };
 
+  /**
+   * Options handed to zodResolver, which forwards them to Zod's parse call. Zod 3 reads
+   * `errorMap` there; Zod 4 ignores it and reads `error` instead (measured: an `errorMap`
+   * passed per-parse is never invoked on Zod 4). Supplying both keeps the messages
+   * localised on either version rather than relying solely on the global map set below.
+   */
+  const resolverOptions = () => {
+    const map = createCustomErrorMap();
+    return {errorMap: map, error: (issue: any) => (map(issue, undefined as any) as any)?.message} as any;
+  };
+
   // Wrap resolver to temporarily set global Zod errorMap and build visibility-aware schema
   const resolver = async ({values, name}: any) => {
     const getErrorMap = (z as any).getErrorMap as (() => any) | undefined;
@@ -560,7 +664,7 @@ const useFormKitValidations = (fields?: FormKitProps['fields'], locale: Locale =
     try {
       // If no fields provided, validate against empty object
       if (!fields) {
-        const dynamic = zodResolver(z.object({}), {errorMap: createCustomErrorMap()});
+        const dynamic = zodResolver(z.object({}), resolverOptions());
         return await (dynamic as any)({values, name});
       }
 
@@ -575,7 +679,7 @@ const useFormKitValidations = (fields?: FormKitProps['fields'], locale: Locale =
 
       // Create a fresh schema where hidden fields skip all validation
       const dynamicSchema = createDynamicSchema(fields, hiddenFields);
-      const dynamicResolver = zodResolver(dynamicSchema, {errorMap: createCustomErrorMap()});
+      const dynamicResolver = zodResolver(dynamicSchema, resolverOptions());
       return await (dynamicResolver as any)({values, name});
     } finally {
       if (setErrorMap) setErrorMap(prevMap);
