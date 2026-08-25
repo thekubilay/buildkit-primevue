@@ -1,9 +1,10 @@
 <template>
   <!-- CheckboxGroup rendering -->
-  <div v-if="restAs === 'CheckboxGroup' && hasOptions" class="bk-group" :class="classNameGroup">
-    <label v-for="(opt, i) in options" :key="i" :for="`${name}-${i}`" class="bk-group-label">
+  <div v-if="restAs === 'CheckboxGroup' && hasOptions" class="bk-group" :class="[classNameGroup, { 'bk-group--wrap': isButtonType }]">
+    <label v-for="(opt, i) in options" :key="i" :for="`${name}-${i}`" class="bk-group-label"
+           :class="[buttonTypeClass, buttonTypeClassActiveClass(opt.value)]">
       <component :is="PrimeCheckbox" :name="name" :inputId="`${name}-${i}`" :value="opt.value" :size="size"/>
-      <span class="bk-text-sm">{{ opt.label }}</span>
+      <span :class="{ 'bk-text-sm': !isButtonType }">{{ opt.label }}</span>
     </label>
   </div>
 
@@ -23,11 +24,11 @@
   <IconField v-else-if="restAs === 'Zipcode'">
     <InputText :name="name" v-bind="bindings" :size="size"/>
     <InputIcon v-if="!isLoading" class="bk-clickable" @click="setAddress(formApi)">
-      <svg v-if="!zipcodeSearchIcon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <svg v-if="!zipcodeSearchIcon" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
       <i v-else :class="zipcodeSearchIcon"/>
     </InputIcon>
     <InputIcon v-else>
-      <svg v-if="!zipcodeLoadingIcon" class="bk-spin" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"/><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/><line x1="4.93" y1="19.07" x2="7.76" y2="16.24"/><line x1="16.24" y1="7.76" x2="19.07" y2="4.93"/></svg>
+      <svg v-if="!zipcodeLoadingIcon" class="bk-spin" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"/><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/><line x1="4.93" y1="19.07" x2="7.76" y2="16.24"/><line x1="16.24" y1="7.76" x2="19.07" y2="4.93"/></svg>
       <i v-else :class="zipcodeLoadingIcon"/>
     </InputIcon>
   </IconField>
@@ -67,7 +68,13 @@ const $fcDynamicForm: any = inject('$fcDynamicForm', undefined);
 const {isLoading, setAddress} = useZipcodeHelpers()
 
 const name = computed(() => $fcDynamicFormField?.name || "");
-const size = computed(() => props.size)
+
+// A field may carry its own `size` to opt out of the form-level one. The merge has to happen
+// here rather than being left to `v-bind="bindings"`: FormKit always passes a resolved `size`
+// (it defaults the prop to "medium"), and every branch applies `:size` after the bindings
+// object, so the form value would win over the field value in every case. `size` is therefore
+// kept out of `bindings` entirely — this computed is the single channel.
+const size = computed(() => props.rest?.size ?? props.size)
 
 // Track the current field value reactively to style active radio button wrapper
 const currentValue = ref<any>(undefined);
@@ -110,18 +117,26 @@ const classNameGroup = computed(() => {
   }
 })
 
+const isButtonType = computed(() => !!props.rest?.buttonType)
+
 const buttonTypeClass = computed(() => {
   const extra = (props.rest as any)?.buttonTypeClass || '';
   return {
-    'bk-button-option': !!props.rest?.buttonType,
+    'bk-button-option': isButtonType.value,
     [extra]: !!extra
   }
 })
 
+// CheckboxGroup holds an array of the checked values while RadioButton holds a single value,
+// so membership — not equality — is what "this option is selected" means for the group case.
+const isOptionActive = (val: any) => Array.isArray(currentValue.value)
+  ? currentValue.value.includes(val)
+  : val === currentValue.value;
+
 const buttonTypeClassActiveClass = computed(() => (val: any) => {
   return {
-    'bk-button-option--active': !!props.rest?.buttonType && val === currentValue.value,
-    'bk-button-option--inactive': !!props.rest?.buttonType && val !== currentValue.value
+    'bk-button-option--active': isButtonType.value && isOptionActive(val),
+    'bk-button-option--inactive': isButtonType.value && !isOptionActive(val)
   }
 })
 
@@ -184,7 +199,15 @@ const bindings = computed(() => {
   // not to have. FormKit.vue already destructures it out of `rest`, but this component is
   // exported and can be mounted directly, so it filters defensively too.
   // `as` selects the component above; it is never an input prop itself.
-  const disallowedProps = new Set(["as", "defaultValue", "schema", "showWhen", "hideWhen", "colSpan", "zipcodeSearchIcon", "zipcodeLoadingIcon", "required"]);
+  // `iconLeft`/`iconRight` pick the IconField branch, `buttonType`/`buttonTypeClass` drive the
+  // option-pill classes, and `vertical` stacks a checkbox/radio group — all five are read
+  // straight off `rest` above, and none is a prop of any control reachable through `as`, so
+  // left in they land on the DOM as stray attributes (`iconleft="pi pi-user"`). VirtualScroller
+  // is the one PrimeVue component that declares a `vertical` prop, but it is a list renderer
+  // configured through `virtualScrollerOptions`, never a form control mounted via `as`.
+  // `size` is resolved by the `size` computed and applied through the explicit `:size` binding
+  // on every branch; leaving it here too would bind it twice.
+  const disallowedProps = new Set(["as", "defaultValue", "schema", "showWhen", "hideWhen", "colSpan", "zipcodeSearchIcon", "zipcodeLoadingIcon", "required", "size", "iconLeft", "iconRight", "buttonType", "buttonTypeClass", "vertical"]);
 
   Object.keys(props.rest || {}).forEach(k => {
     if (disallowedProps.has(k)) {

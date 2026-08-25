@@ -101,13 +101,28 @@
 .bk-spin { animation: bk-spin 1s linear infinite; }
 @keyframes bk-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
-/* Button-like options for Radio buttonType variant */
+/* Button-like options for the Radio/Checkbox buttonType variant.
+   Padding and font-size come from the same form-field tokens PrimeVue's own Button uses, so a
+   pill lines up with a Button of the matching size instead of sitting at a hard-coded medium.
+   The size is read off the control PrimeVue renders inside the label: it stamps
+   `p-inputfield-sm` / `p-inputfield-lg` there whenever `size` is set, and nothing at all for
+   the default size — which is exactly the three cases below. */
 .bk-button-option {
-  padding: 0.5rem 0.75rem; /* py-2 px-3 */
+  padding: var(--p-form-field-padding-y, 0.5rem) var(--p-form-field-padding-x, 0.75rem);
   border: 1px solid var(--p-content-border-color, #d1d5db);
   border-radius: var(--p-content-border-radius, 6px);
   cursor: pointer;
   user-select: none;
+}
+
+.bk-button-option:has(.p-inputfield-sm) {
+  padding: var(--p-form-field-sm-padding-y, 0.375rem) var(--p-form-field-sm-padding-x, 0.625rem);
+  font-size: var(--p-form-field-sm-font-size, 0.875rem);
+}
+
+.bk-button-option:has(.p-inputfield-lg) {
+  padding: var(--p-form-field-lg-padding-y, 0.625rem) var(--p-form-field-lg-padding-x, 0.875rem);
+  font-size: var(--p-form-field-lg-font-size, 1.125rem);
 }
 
 .bk-button-option--active {

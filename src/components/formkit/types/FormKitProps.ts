@@ -36,6 +36,14 @@ export interface FormKitField {
   style?: any;
   schema?: string; // Schema string like "required|max:12|email"
   vertical?: boolean; // this is for group inputs checkboxGroup RadioButton
+  /** Overrides the form-level `size` for this one control. */
+  size?: "small" | "medium" | "large";
+  /** RadioButton/CheckboxGroup only: render each option as a button-like pill. */
+  buttonType?: boolean;
+  /** Extra class applied to every pill when `buttonType` is on. */
+  buttonTypeClass?: string;
+  iconLeft?: string; // Icon class rendered before the input (wraps it in an IconField)
+  iconRight?: string; // Icon class rendered after the input (wraps it in an IconField)
   options?: Array<{ label: string; value: any }>; // For Select, RadioButton, CheckboxGroup
   showWhen?: VisibilityCondition | VisibilityCondition[];
   hideWhen?: VisibilityCondition | VisibilityCondition[];
