@@ -37,6 +37,8 @@ still gets its type message (e.g. 無効な入力です（配列が必要です�
 - Dev toolchain: `npm audit fix` for advisories published before 2026-11-02, and an npm
   `overrides` entry letting `@vue/tsconfig` (whose releases declare a TypeScript 5 peer)
   install alongside TypeScript 6. Neither affects the published package.
+- The in-repo consumer `playground/package.json` now pins `"zod": "4.6.6"` as well, so
+  `npm run playground:verify` / `npm run verify` install against the new peer.
 
 ### Tests
 
