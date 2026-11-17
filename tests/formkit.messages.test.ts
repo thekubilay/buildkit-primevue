@@ -113,9 +113,13 @@ describe('the Zod issue shape this depends on (pinned to zod 4.6.6)', () => {
   });
 });
 
-describe('Japanese messages are exactly those produced on zod 4.1.11', () => {
+describe('Japanese messages are the same as in 0.2.1 (missing value reads as "required")', () => {
   // Literal strings, not `messages.ja.*`, so a change in either the locale file or the
   // Zod issue shape shows up here as a wording change.
+  // Baseline: these literals come from the 0.2.1 locale file and the CHANGELOG rule
+  // 'A missing value now reads as "required"', which is what 0.2.1 produced on zod 4.1.11.
+  // They were not re-measured against an installed zod 4.1.11 (only 4.6.6 is installed);
+  // this block pins that behaviour as a regression check on the current zod.
   const missing: Array<[string, any, any]> = [
     ['InputText ""', {as: 'InputText', schema: 'required'}, ''],
     ['InputText undefined', {as: 'InputText', schema: 'required'}, undefined],
