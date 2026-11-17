@@ -8,8 +8,8 @@ buildkit-primevue is a Vue 3 form component library that wraps PrimeVue v4 compo
 
 ## Stack
 
-- Library version 0.2.1, published to npm as `buildkit-primevue`; consumed by admin.branz-esalon, branz-esalon_fe, reservation.branz-esalon_fe, admin.kenshinyoyaku, admin.minatoshouji, highroller_fe. A change to the public API / `exports` map affects all of them.
-- Peer deps: Vue >=3.4, PrimeVue 4 + @primevue/forms + @primeuix/themes 2, zod **4.1.11 (exact pin)**, @vueuse/core 14, axios, quill 2
+- Library version 0.2.2, published to npm as `buildkit-primevue`; consumed by admin.branz-esalon, branz-esalon_fe, reservation.branz-esalon_fe, admin.kenshinyoyaku, admin.minatoshouji, highroller_fe. A change to the public API / `exports` map affects all of them.
+- Peer deps: Vue >=3.4, PrimeVue 4 + @primevue/forms + @primeuix/themes 2, zod **4.6.6 (exact pin)**, @vueuse/core 14, axios, quill 2
 - Dev toolchain: TypeScript 6.0, Vite 8.3 (exact pin `8.3.4`), vue-tsc 3, Vitest 4 (jsdom) + @vue/test-utils; tailwindcss 4 is a devDependency only (playground/dev)
 
 ## Commands

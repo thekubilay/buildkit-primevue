@@ -41,7 +41,7 @@ The following peer dependencies must be installed:
 | `@primevue/themes` | >=4.0.0   | Theming                                        |
 | `@primeuix/themes` | ^2.0.3    | Theming (Aura and friends)                     |
 | `@primeuix/utils`  | >=0.0.1   | PrimeVue internals                             |
-| `zod`              | 4.1.11    | Validation                                     |
+| `zod`              | 4.6.6     | Validation (exact pin)                         |
 | `axios`            | >=1.0.0   | `as: "Zipcode"` lookup only                    |
 | `@vueuse/core`     | ^14.1.0   | `useResizeObserver` for the responsive grid    |
 | `quill`            | ^2.0.3    | `as: "Editor"` only                            |
@@ -588,7 +588,8 @@ schema string.
   `InputNumber` says 必須項目です, not 数値を入力してください; that wording is reserved for a
   value of genuinely the wrong type. This works across Zod 3 and Zod 4: Zod 3 named the
   received type in `issue.received`, Zod 4 dropped that and carries the value as
-  `issue.input`, so both are read.
+  `issue.input`, so both are read. `tests/formkit.messages.test.ts` pins the zod 4.6.6
+  issue shape and the literal Japanese messages.
 - **Hidden fields skip validation** entirely (auto-replaced with `z.any().optional()`)
 - Validation is visibility-aware: runs only on visible fields
 - Arrays (MultiSelect, CheckboxGroup) validate `min`/`max` against item count

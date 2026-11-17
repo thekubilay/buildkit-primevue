@@ -1,5 +1,49 @@
 # Changelog
 
+## 0.2.2
+
+### Breaking changes (dependency only)
+
+**The `zod` peer dependency is now `4.6.6` (was `4.1.11`).** zod 4.1.11 is affected by
+GHSA-mrhx-c7xc-m3w5 (memory exhaustion when validating an oversized collection that has a
+size constraint), fixed in zod 4.6.6. The peer stays an exact pin, so **every consumer must
+change its own `package.json` to `"zod": "4.6.6"`** and reinstall; with 4.1.11 still
+installed, npm reports a peer-dependency conflict (ERESOLVE).
+
+```diff
+- "zod": "4.1.11"
++ "zod": "4.6.6"
+```
+
+Nothing else changes for consumers: FormKit props and events, exported components,
+utilities and types, the `exports` map and every validation message are the same as in
+0.2.1. A missing required value still reads 必須項目です and a value of the wrong type
+still gets its type message (e.g. 無効な入力です（配列が必要です）, 数値を入力してください).
+
+### Notes on the zod 4.1 → 4.6 upgrade
+
+- The issue object an error map receives still carries the offending value as
+  `issue.input` (the "a missing value reads as required" logic depends on it); 4.6 adds a
+  `schema` key alongside `expected` / `code` / `input` / `inst`.
+- `safeParse` now builds `result.error` lazily, on first read, under whatever global error
+  map is active then. The library is not affected — the PrimeVue zod resolver calls
+  `parseAsync`, which finalises eagerly, and the localised map is also passed per parse,
+  where it outranks the global one — but code that swaps `z.setErrorMap` around a
+  `safeParse` call must read `.error` before restoring the map.
+- An array with a `max` constraint is now rejected before its elements are parsed (the
+  security fix). The library's array fields use `z.any()` elements, which never raise
+  issues, so an oversized MultiSelect/CheckboxGroup value reports the same `max:n`
+  message as before.
+- Dev toolchain: `npm audit fix` for advisories published before 2026-11-02, and an npm
+  `overrides` entry letting `@vue/tsconfig` (whose releases declare a TypeScript 5 peer)
+  install alongside TypeScript 6. Neither affects the published package.
+
+### Tests
+
+- `tests/formkit.messages.test.ts` pins the zod 4.6.6 issue shape (including the lazy
+  `safeParse` error) and asserts the literal Japanese messages for missing and
+  wrong-type values.
+
 ## 0.2.0
 
 ### Breaking changes
