@@ -29,6 +29,7 @@ FormKit-powered form components and helpers built on PrimeVue v4 and Tailwind CS
 - Vue >= 3.4
 - PrimeVue >= 4.4.0
 - @primevue/forms >= 4.0.0
+- zod 4.6.6 (exact version — the peer dependency is pinned)
 - Tailwind CSS >= 4 (recommended) and tailwindcss-primeui (optional)
 
 See peerDependencies in package.json for the full list.
@@ -38,7 +39,7 @@ See peerDependencies in package.json for the full list.
 Install the package and the required peers:
 
 ```bash
-npm i buildkit-primevue primevue @primevue/forms @primevue/themes @primeuix/themes @primeuix/utils vue
+npm i buildkit-primevue primevue @primevue/forms @primevue/themes @primeuix/themes @primeuix/utils vue zod@4.6.6
 # optional but recommended if you use Tailwind v4
 npm i -D tailwindcss @tailwindcss/vite @tailwindcss/postcss tailwindcss-primeui
 ```

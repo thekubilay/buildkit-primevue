@@ -13,8 +13,9 @@ const useFormKitValidations = (fields?: FormKitProps['fields'], locale: Locale =
    * Name the type Zod actually received, across Zod 3 and Zod 4.
    *
    * Zod 3 put the type name on `issue.received`. Zod 4 dropped that field and carries the
-   * offending value itself as `issue.input` instead (verified: an invalid_type issue has
-   * exactly `["expected", "code", "input", "inst"]`). Reading only `received` left the
+   * offending value itself as `issue.input` instead (verified on zod 4.6.6: an invalid_type
+   * issue has exactly `["expected", "code", "input", "inst", "schema"]`, plus `path` for an
+   * object key; 4.1.x had the same keys minus `schema`). Reading only `received` left the
    * missing-value branch dead on Zod 4, so every empty required field reported a type
    * mismatch — 「無効な入力です（〇〇が必要です）」 — instead of "this field is required".
    *
@@ -646,6 +647,13 @@ const useFormKitValidations = (fields?: FormKitProps['fields'], locale: Locale =
    * `errorMap` there; Zod 4 ignores it and reads `error` instead (measured: an `errorMap`
    * passed per-parse is never invoked on Zod 4). Supplying both keeps the messages
    * localised on either version rather than relying solely on the global map set below.
+   *
+   * The per-parse `error` is also what keeps this correct on zod >= 4.6: `safeParse` there
+   * builds its error lazily, on the first read of `result.error`, under whatever global map
+   * is active at that moment — possibly after the `finally` below has restored the previous
+   * one. The per-parse `error` travels with the parse context and is consulted before the
+   * global map, so it applies whenever the issues are finalised. (zodResolver calls
+   * `parseAsync`, which still finalises eagerly, so today both paths agree.)
    */
   const resolverOptions = () => {
     const map = createCustomErrorMap();
